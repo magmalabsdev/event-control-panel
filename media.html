@@ -55,6 +55,7 @@
         v.autoplay = true;
         v.controls = false;
         v.playsInline = true;
+        v.muted = !!item.muted;
         v.style.maxWidth='100%';
         v.style.maxHeight='100%';
         v.addEventListener('ended', ()=> sendMessageToOpener({type:'videoEnded'}));

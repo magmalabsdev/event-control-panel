@@ -64,6 +64,9 @@ const inputDeviceSelect = document.getElementById('inputDeviceSelect');
 const outputDeviceSelect = document.getElementById('outputDeviceSelect');
 const masterVolume = document.getElementById('masterVolume');
 const intercomVolume = document.getElementById('intercomVolume');
+const musicVolume = document.getElementById('musicVolume');
+const soundboardVolume = document.getElementById('soundboardVolume');
+const mediaMuteAudio = document.getElementById('mediaMuteAudio');
 const pauseMusicDuring = document.getElementById('pauseMusicDuringAnnouncement');
 const fadeMusic = document.getElementById('fadeMusic');
 
@@ -128,11 +131,19 @@ async function ensureDeviceAccess(){
   await refreshAudioDeviceLists();
 }
 
-// Master volume control
-masterVolume.addEventListener('input', ()=>{
-  const v = parseFloat(masterVolume.value);
-  musicAudio.volume = v;
-});
+// Master / channel volume controls
+function applyVolumeSettings(){
+  const m = parseFloat(masterVolume?.value) || 1;
+  const mv = parseFloat(musicVolume?.value) || 1;
+  const sv = parseFloat(soundboardVolume?.value) || 1;
+  // effective volumes
+  try { musicAudio.volume = m * mv; } catch {}
+  // (soundboard volumes applied on play)
+}
+
+masterVolume.addEventListener('input', applyVolumeSettings);
+if (musicVolume) musicVolume.addEventListener('input', applyVolumeSettings);
+if (soundboardVolume) soundboardVolume.addEventListener('input', applyVolumeSettings);
 
 function readBlobAsDataURL(blob){
   return new Promise((resolve,reject)=>{
@@ -191,6 +202,9 @@ async function createEcpPayload(sessionState){
     notes: sessionNotes?.value || '',
     settings: {
       masterVolume: parseFloat(masterVolume.value),
+      musicVolume: parseFloat(musicVolume?.value) || 1,
+      soundboardVolume: parseFloat(soundboardVolume?.value) || 1,
+      mediaMuteAudio: !!(mediaMuteAudio?.checked),
       intercomVolume: parseFloat(intercomVolume.value),
       pauseMusicDuringAnnouncement: pauseMusicDuring.checked,
       fadeMusic: fadeMusic.checked,
@@ -301,7 +315,10 @@ function applyPreset(preset){
 
   if (preset.settings){
     masterVolume.value = preset.settings.masterVolume ?? 1;
-    musicAudio.volume = parseFloat(masterVolume.value);
+    if (musicVolume) musicVolume.value = preset.settings.musicVolume ?? 1;
+    if (soundboardVolume) soundboardVolume.value = preset.settings.soundboardVolume ?? 1;
+    if (mediaMuteAudio) mediaMuteAudio.checked = !!preset.settings.mediaMuteAudio;
+    applyVolumeSettings();
     intercomVolume.value = preset.settings.intercomVolume ?? 1;
     pauseMusicDuring.checked = preset.settings.pauseMusicDuringAnnouncement === true;
     fadeMusic.checked = preset.settings.fadeMusic === true;
@@ -381,7 +398,10 @@ async function applyImportedSession(payload){
 
   if (payload.settings){
     masterVolume.value = payload.settings.masterVolume ?? 1;
-    musicAudio.volume = parseFloat(masterVolume.value);
+    if (musicVolume) musicVolume.value = payload.settings.musicVolume ?? 1;
+    if (soundboardVolume) soundboardVolume.value = payload.settings.soundboardVolume ?? 1;
+    if (mediaMuteAudio) mediaMuteAudio.checked = !!payload.settings.mediaMuteAudio;
+    applyVolumeSettings();
     intercomVolume.value = payload.settings.intercomVolume ?? 1;
     pauseMusicDuring.checked = payload.settings.pauseMusicDuringAnnouncement === true;
     fadeMusic.checked = payload.settings.fadeMusic === true;
@@ -1288,7 +1308,9 @@ function renderSoundboardGrid(){
     button.textContent = s.name;
     button.addEventListener('click', ()=>{
       const sound = new Audio(s.url);
-      sound.volume = parseFloat(masterVolume.value) || 1;
+      const m = parseFloat(masterVolume?.value) || 1;
+      const sv = parseFloat(soundboardVolume?.value) || 1;
+      sound.volume = m * sv;
       sound.play().catch(()=>{});
     });
     soundboardGrid.appendChild(button);
@@ -1423,7 +1445,7 @@ function showMediaAt(i){
 
 function sendMediaToDisplay(item){
   if (!displayWindow || displayWindow.closed) openDisplayWindow();
-  const msg = {type:'show', item:{name:item.name,url:item.url,type:item.type}};
+  const msg = {type:'show', item:{name:item.name,url:item.url,type:item.type, muted: (mediaMuteAudio ? !!mediaMuteAudio.checked : true)}};
   // wait for popup to be ready
   setTimeout(()=> displayWindow.postMessage(msg,'*'),200);
 }
@@ -1498,7 +1520,7 @@ function updateMediaMirror(item){
     video.src = item.url;
     video.controls = false;
     video.autoplay = true;
-    video.muted = true;
+    video.muted = (mediaMuteAudio ? !!mediaMuteAudio.checked : true);
     video.loop = false;
     video.addEventListener('timeupdate', ()=> updateQueueProgress('media'));
     mediaMirrorContent.appendChild(video);
@@ -1667,7 +1689,7 @@ function fadeOutMusic(durationSec=0.5){
   }, durationSec*1000/steps);
 }
 function fadeInMusic(durationSec=0.5){
-  const target = parseFloat(masterVolume.value)||1;
+  const target = (parseFloat(masterVolume.value)||1) * (parseFloat(musicVolume?.value)||1);
   musicAudio.volume = 0;
   musicAudio.play().catch(()=>{});
   const steps=20; let i=0;
@@ -1681,6 +1703,7 @@ intercomVolume.addEventListener('input', ()=>{
 });
 
 // initial UI
+applyVolumeSettings();
 updateMusicUI();
 updateMediaUI();
 updateButtonStates();
