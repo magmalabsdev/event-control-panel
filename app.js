@@ -3458,24 +3458,28 @@ document.getElementById('clearAnnouncementBtn')?.addEventListener('click', clear
 
 // ===== SETTINGS PAGE =====
 (function initSettings() {
-  function applyTheme(lightMode, highContrast, iconsMode) {
+  function applyTheme(lightMode, highContrast, iconsMode, realisticMode) {
     document.body.classList.toggle('light-mode', lightMode);
     document.body.classList.toggle('high-contrast', highContrast);
     document.body.classList.toggle('icons-mode', iconsMode);
+    document.body.classList.toggle('realistic-mode', realisticMode);
   }
 
-  const lightMode    = localStorage.getItem('ecp-light-mode')    === 'true';
-  const highContrast = localStorage.getItem('ecp-high-contrast') === 'true';
-  const iconsMode    = localStorage.getItem('ecp-icons-mode')    === 'true';
-  applyTheme(lightMode, highContrast, iconsMode);
+  const lightMode     = localStorage.getItem('ecp-light-mode')      === 'true';
+  const highContrast  = localStorage.getItem('ecp-high-contrast')    === 'true';
+  const iconsMode     = localStorage.getItem('ecp-icons-mode')       === 'true';
+  const realisticMode = localStorage.getItem('ecp-realistic-mode')   === 'true';
+  applyTheme(lightMode, highContrast, iconsMode, realisticMode);
 
-  const chkLight    = document.getElementById('settingLightMode');
-  const chkContrast = document.getElementById('settingHighContrast');
-  const chkIcons    = document.getElementById('settingIconsMode');
+  const chkLight     = document.getElementById('settingLightMode');
+  const chkContrast  = document.getElementById('settingHighContrast');
+  const chkIcons     = document.getElementById('settingIconsMode');
+  const chkRealistic = document.getElementById('settingRealisticMode');
 
-  if (chkLight)    chkLight.checked    = lightMode;
-  if (chkContrast) chkContrast.checked = highContrast;
-  if (chkIcons)    chkIcons.checked    = iconsMode;
+  if (chkLight)     chkLight.checked     = lightMode;
+  if (chkContrast)  chkContrast.checked  = highContrast;
+  if (chkIcons)     chkIcons.checked     = iconsMode;
+  if (chkRealistic) chkRealistic.checked = realisticMode;
 
   chkLight?.addEventListener('change', function () {
     localStorage.setItem('ecp-light-mode', this.checked);
@@ -3488,5 +3492,9 @@ document.getElementById('clearAnnouncementBtn')?.addEventListener('click', clear
   chkIcons?.addEventListener('change', function () {
     localStorage.setItem('ecp-icons-mode', this.checked);
     document.body.classList.toggle('icons-mode', this.checked);
+  });
+  chkRealistic?.addEventListener('change', function () {
+    localStorage.setItem('ecp-realistic-mode', this.checked);
+    document.body.classList.toggle('realistic-mode', this.checked);
   });
 })();

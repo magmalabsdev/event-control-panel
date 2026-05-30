@@ -430,6 +430,91 @@ body.light-mode.high-contrast li .item-actions button{background:#1e1e22;color:#
 body.light-mode.high-contrast li .item-actions button:hover{background:#2e2e34}
 body.light-mode.high-contrast button.action-button.inactive{background:#666;color:#eee;border-color:#555}
 
+/* ===== REALISTIC BUTTON MODE ===== */
+/* Base — static dark aviation-panel color, always, regardless of theme */
+body.realistic-mode button.action-button{
+  position:relative;
+  padding:26px 12px 9px !important;
+  min-height:56px;
+  background:#25272b !important;
+  border:1px solid #15171a !important;
+  color:#bdbdbd !important;
+  border-radius:6px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 3px 8px rgba(0,0,0,.55);
+  font-size:.7rem;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  transition:background .15s,border-color .15s,color .15s
+}
+body.realistic-mode button.action-button:hover{
+  background:#2d2f34 !important;
+  border-color:#1c1e22 !important;
+  color:#e0e0e0 !important;
+  transform:none
+}
+/* Active states keep same dark body — LED bars handle state indication */
+body.realistic-mode button.action-button.active-play,
+body.realistic-mode button.action-button.active-pause,
+body.realistic-mode button.action-button.active-announcement,
+body.realistic-mode button.action-button.active-toggle{
+  background:#25272b !important;
+  border-color:#15171a !important;
+  color:#bdbdbd !important
+}
+/* Inactive: dimmer text only */
+body.realistic-mode button.action-button.inactive{
+  background:#25272b !important;
+  border-color:#15171a !important;
+  color:#666 !important
+}
+
+/* LED bar indicator (::after — doesn't conflict with icons-mode ::before) */
+body.realistic-mode button.action-button::after{
+  content:'';
+  position:absolute;
+  top:7px;
+  left:50%;
+  transform:translateX(-50%);
+  width:58%;
+  height:12px;
+  border-radius:3px;
+  pointer-events:none;
+  /* Two unlit bars — dark green */
+  background:linear-gradient(
+    #0c190d 0,#0c190d 41%,
+    transparent 41%,transparent 59%,
+    #0c190d 59%,#0c190d 100%
+  );
+  border:1px solid #080f09
+}
+/* Green — playing / active / running */
+body.realistic-mode button.action-button.active-play::after,
+body.realistic-mode button.action-button.active-announcement::after,
+body.realistic-mode button.action-button.btn-running::after{
+  background:linear-gradient(
+    #1ecc4a 0,#1ecc4a 41%,
+    transparent 41%,transparent 59%,
+    #1ecc4a 59%,#1ecc4a 100%
+  );
+  border-color:#15a83a;
+  box-shadow:0 0 7px #1ecc4a,0 0 18px rgba(30,204,74,.4)
+}
+/* Amber — paused */
+body.realistic-mode button.action-button.active-pause::after{
+  background:linear-gradient(
+    #cc8800 0,#cc8800 41%,
+    transparent 41%,transparent 59%,
+    #cc8800 59%,#cc8800 100%
+  );
+  border-color:#a87000;
+  box-shadow:0 0 7px #cc8800,0 0 18px rgba(204,136,0,.4)
+}
+/* Icons + realistic: icon sits below LED bars naturally via padding-top */
+body.realistic-mode.icons-mode button.action-button{
+  padding:26px 10px 9px !important
+}
+
 /* ===== SOUNDBOARD ITEM (star + delete) ===== */
 .soundboard-item{display:flex;gap:4px;align-items:stretch}
 .soundboard-item .soundboard-button{flex:1 1 auto;min-width:0}
