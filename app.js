@@ -403,10 +403,13 @@ function addSpotifyToQueue(spotifyUri) {
   setTimeout(() => setStatus(''), 3000);
 }
 
-// Parse a YouTube or Google Drive URL for the slides/media queue
+// Parse a URL for the visuals/media queue — supports YouTube, Google Drive, Google Slides,
+// direct image URLs, remote PDFs and PPTX files.
 function parseMediaUrl(url) {
   try {
     const u = new URL(url.trim());
+
+    // YouTube
     if (u.hostname === 'youtu.be') {
       const videoId = u.pathname.slice(1).split('?')[0];
       if (videoId) return { type: 'youtube-embed', videoId };
@@ -419,40 +422,115 @@ function parseMediaUrl(url) {
       const shortsMatch = u.pathname.match(/^\/shorts\/([^/?]+)/);
       if (shortsMatch) return { type: 'youtube-embed', videoId: shortsMatch[1] };
     }
+
+    // Google Drive
     if (u.hostname === 'drive.google.com') {
       const fileMatch = u.pathname.match(/\/file\/d\/([^/]+)/);
       if (fileMatch) return { type: 'gdrive-embed', fileId: fileMatch[1] };
       const fileId = u.searchParams.get('id');
       if (fileId) return { type: 'gdrive-embed', fileId };
     }
+
+    // Google Slides
+    if (u.hostname === 'docs.google.com') {
+      const slidesMatch = u.pathname.match(/\/presentation\/d\/([^/]+)/);
+      if (slidesMatch) return { type: 'gslides-embed', presentationId: slidesMatch[1] };
+    }
+
+    // Direct image / PDF / PPTX by file extension
+    const path = u.pathname.toLowerCase().split('?')[0];
+    const imageExtMap = {
+      '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.png':'image/png',
+      '.gif':'image/gif', '.webp':'image/webp', '.bmp':'image/bmp',
+      '.svg':'image/svg+xml', '.avif':'image/avif', '.tiff':'image/tiff'
+    };
+    for (const [ext, mime] of Object.entries(imageExtMap)) {
+      if (path.endsWith(ext)) return { type: 'image-url', mimeType: mime };
+    }
+    if (path.endsWith('.pdf'))  return { type: 'pdf-url' };
+    if (path.endsWith('.pptx')) return { type: 'pptx-url' };
+
     return null;
   } catch { return null; }
 }
 
-function addMediaUrl(url) {
-  const parsed = parseMediaUrl(url);
+async function addMediaUrl(url) {
+  const raw = url.trim();
+  const parsed = parseMediaUrl(raw);
   if (!parsed) {
-    setStatus('Unrecognized URL. Paste a YouTube video or Google Drive shared file link.');
-    setTimeout(() => setStatus(''), 3000);
+    setStatus('Unrecognized URL. Paste a YouTube, Google Drive, Google Slides, image, PDF, or PPTX link.');
+    setTimeout(() => setStatus(''), 4000);
     return;
   }
+
   if (parsed.type === 'youtube-embed') {
     const embedUrl = `https://www.youtube.com/embed/${parsed.videoId}`;
     const item = { name: `YouTube: ${parsed.videoId}`, type: 'youtube-embed', source: 'youtube-media', embedUrl, videoId: parsed.videoId, url: '', notes: '', durationFormatted: 'YouTube' };
     media.push(item);
     renderMediaQueue();
-    setStatus(`Added YouTube video`);
+    setStatus('Added YouTube video');
     setTimeout(() => setStatus(''), 3000);
     fetchYouTubeTitle(parsed.videoId).then(title => {
       if (title && item) { item.name = `YouTube: ${title}`; renderMediaQueue(); }
     });
+
   } else if (parsed.type === 'gdrive-embed') {
     const embedUrl = `https://drive.google.com/file/d/${parsed.fileId}/preview`;
     const item = { name: `Drive: ${parsed.fileId.slice(0, 12)}...`, type: 'gdrive-embed', source: 'gdrive', embedUrl, fileId: parsed.fileId, url: '', notes: '', durationFormatted: 'Google Drive' };
     media.push(item);
     renderMediaQueue();
-    setStatus(`Added Google Drive file`);
+    setStatus('Added Google Drive file');
     setTimeout(() => setStatus(''), 3000);
+
+  } else if (parsed.type === 'gslides-embed') {
+    const embedUrl = `https://docs.google.com/presentation/d/${parsed.presentationId}/embed?start=false&loop=false&delayms=3000`;
+    const item = { name: `Slides: ${parsed.presentationId.slice(0, 14)}...`, type: 'gslides-embed', source: 'gslides', embedUrl, presentationId: parsed.presentationId, url: '', notes: '', durationFormatted: 'Google Slides' };
+    media.push(item);
+    renderMediaQueue();
+    setStatus('Added Google Slides presentation');
+    setTimeout(() => setStatus(''), 3000);
+
+  } else if (parsed.type === 'image-url') {
+    const filename = raw.split('/').pop().split('?')[0] || 'Web Image';
+    const item = { name: filename, type: parsed.mimeType, source: 'image-url', url: raw, notes: '', durationFormatted: 'Web Image', pages: 1 };
+    media.push(item);
+    renderMediaQueue();
+    setStatus(`Added web image: ${filename}`);
+    setTimeout(() => setStatus(''), 3000);
+
+  } else if (parsed.type === 'pdf-url') {
+    setStatus('Fetching PDF…');
+    try {
+      const resp = await fetch(raw);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      const filename = raw.split('/').pop().split('?')[0] || 'remote.pdf';
+      const file = new File([blob], filename, { type: 'application/pdf' });
+      const pages = await convertPdfFromFile(file, 1.5, 'jpeg');
+      media.push(...pages);
+      renderMediaQueue();
+      setStatus(`Added ${pages.length} PDF page${pages.length === 1 ? '' : 's'} from URL`);
+    } catch (err) {
+      setStatus(`Failed to fetch PDF: ${err.message || 'CORS or network error'}`);
+    }
+    setTimeout(() => setStatus(''), 5000);
+
+  } else if (parsed.type === 'pptx-url') {
+    setStatus('Fetching PPTX…');
+    try {
+      const resp = await fetch(raw);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      const filename = raw.split('/').pop().split('?')[0] || 'remote.pptx';
+      const file = new File([blob], filename, { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+      const slides = await convertPptxFromFile(file, 1, 'jpeg');
+      media.push(...slides);
+      renderMediaQueue();
+      setStatus(`Added ${slides.length} PPTX slide${slides.length === 1 ? '' : 's'} from URL`);
+    } catch (err) {
+      setStatus(`Failed to fetch PPTX: ${err.message || 'CORS or network error'}`);
+    }
+    setTimeout(() => setStatus(''), 5000);
   }
 }
 
@@ -596,10 +674,16 @@ function onYtStateChange(event) {
       musicPlaying = false; updateMusicUI(); updateButtonStates(); return;
     }
     const next = findNextPlayableSongIndex(currentSongIndex);
-    if (next !== -1) { playSongAt(next); return; }
+    if (next !== -1) {
+      if (songs[next].breakpoint) { musicPlaying = false; updateMusicUI(); updateButtonStates(); setStatus('⛔ Stopped at breakpoint: ' + songs[next].name); setTimeout(() => setStatus(''), 5000); return; }
+      playSongAt(next); return;
+    }
     if (musicLoopMode === 'all') {
       const first = findNextPlayableSongIndex(-1);
-      if (first !== -1) { playSongAt(first); return; }
+      if (first !== -1) {
+        if (songs[first].breakpoint) { musicPlaying = false; updateMusicUI(); updateButtonStates(); setStatus('⛔ Stopped at breakpoint: ' + songs[first].name); setTimeout(() => setStatus(''), 5000); return; }
+        playSongAt(first); return;
+      }
     }
     musicPlaying = false; updateMusicUI(); updateButtonStates();
   }
@@ -652,10 +736,16 @@ function handleSpotifyTrackEnd() {
     musicPlaying = false; updateMusicUI(); updateButtonStates(); return;
   }
   const next = findNextPlayableSongIndex(currentSongIndex);
-  if (next !== -1) { playSongAt(next); return; }
+  if (next !== -1) {
+    if (songs[next].breakpoint) { musicPlaying = false; updateMusicUI(); updateButtonStates(); setStatus('⛔ Stopped at breakpoint: ' + songs[next].name); setTimeout(() => setStatus(''), 5000); return; }
+    playSongAt(next); return;
+  }
   if (musicLoopMode === 'all') {
     const first = findNextPlayableSongIndex(-1);
-    if (first !== -1) { playSongAt(first); return; }
+    if (first !== -1) {
+      if (songs[first].breakpoint) { musicPlaying = false; updateMusicUI(); updateButtonStates(); setStatus('⛔ Stopped at breakpoint: ' + songs[first].name); setTimeout(() => setStatus(''), 5000); return; }
+      playSongAt(first); return;
+    }
   }
   musicPlaying = false; updateMusicUI(); updateButtonStates();
 }
@@ -712,6 +802,7 @@ async function serializeSessionItems(items){
       notes:item.notes || '',
       durationFormatted:item.durationFormatted || '',
       skip: !!item.skip,
+      breakpoint: !!item.breakpoint,
       dataUrl:dataUrl || ''
     };
     if (item.source === 'youtube') {
@@ -729,6 +820,13 @@ async function serializeSessionItems(items){
     if (item.source === 'gdrive') {
       serialized.embedUrl = item.embedUrl || '';
       serialized.fileId = item.fileId || '';
+    }
+    if (item.source === 'gslides') {
+      serialized.embedUrl = item.embedUrl || '';
+      serialized.presentationId = item.presentationId || '';
+    }
+    if (item.source === 'image-url') {
+      serialized.remoteUrl = item.url || '';
     }
     list.push(serialized);
   }
@@ -812,7 +910,8 @@ function createSessionItem(serialized){
     pages: serialized.pages || 0,
     notes: serialized.notes || '',
     durationFormatted: serialized.durationFormatted || 'Unknown',
-    skip: !!serialized.skip
+    skip: !!serialized.skip,
+    breakpoint: !!serialized.breakpoint
   };
   if (serialized.source === 'youtube') {
     item.youtubeType = serialized.youtubeType || 'video';
@@ -829,6 +928,13 @@ function createSessionItem(serialized){
   if (serialized.source === 'gdrive') {
     item.embedUrl = serialized.embedUrl || '';
     item.fileId = serialized.fileId || '';
+  }
+  if (serialized.source === 'gslides') {
+    item.embedUrl = serialized.embedUrl || '';
+    item.presentationId = serialized.presentationId || '';
+  }
+  if (serialized.source === 'image-url') {
+    item.url = serialized.remoteUrl || serialized.dataUrl || '';
   }
   return item;
 }
@@ -1720,11 +1826,20 @@ async function processMediaFile(file){
   }
 }
 
+function faIcon(name) {
+  const el = document.createElement('span');
+  el.className = 'fa-icon';
+  el.setAttribute('aria-hidden', 'true');
+  el.style.cssText = `-webkit-mask-image:url(icons/${name}.svg);mask-image:url(icons/${name}.svg)`;
+  return el;
+}
+
 function createListItem(item, index, type){
   const li = document.createElement('li');
   li.dataset.index = index;
   li.classList.toggle('active', index === (type === 'music'? currentSongIndex : currentMediaIndex));
   if (item.skip && (type === 'music' || type === 'media')) li.classList.add('skipped');
+  if (item.breakpoint && (type === 'music' || type === 'media')) li.classList.add('has-breakpoint');
 
   // Stream items (YouTube/Spotify/embed) get a warning highlight
   if (type === 'music' && (item.source === 'youtube' || item.source === 'spotify')) {
@@ -1764,6 +1879,12 @@ function createListItem(item, index, type){
   } else if (item.source === 'gdrive') {
     typeText.textContent = 'Google Drive';
     typeText.className = 'source-badge badge-gdrive';
+  } else if (item.source === 'gslides') {
+    typeText.textContent = 'Google Slides';
+    typeText.className = 'source-badge badge-gslides';
+  } else if (item.source === 'image-url') {
+    typeText.textContent = 'Web Image';
+    typeText.className = 'source-badge badge-web';
   } else if (item.type.startsWith('video/')) {
     typeText.textContent = item.durationFormatted || 'Loading...';
   } else if (item.source === 'pdf') {
@@ -1799,18 +1920,23 @@ function createListItem(item, index, type){
     }
   }
   if (type === 'media') {
-    let warnText = null;
+    const warns = [];
     if (item.source === 'youtube-media') {
-      warnText = '⚠ Autoplay may be blocked by browser; no auto-advance detection';
+      warns.push({ text: '⚠ Autoplay may be blocked; no auto-advance detection', cls: 'stream-warning' });
     } else if (item.source === 'gdrive') {
-      warnText = '⚠ File must be publicly shared in Google Drive';
+      warns.push({ text: '⚠ File must be publicly shared in Google Drive', cls: 'stream-warning stream-warning-amber' });
+    } else if (item.source === 'gslides') {
+      warns.push({ text: '⚠ Presentation must be published to the web in Google Slides', cls: 'stream-warning stream-warning-red' });
+      warns.push({ text: '⚠ Slide navigation and timing are controlled by Google Slides, not ECP', cls: 'stream-warning stream-warning-red' });
+    } else if (item.source === 'image-url') {
+      warns.push({ text: '⚠ Served from an external URL — may break if the source changes or goes offline', cls: 'stream-warning stream-warning-amber' });
     }
-    if (warnText) {
+    warns.forEach(({ text, cls }) => {
       const warn = document.createElement('span');
-      warn.className = 'stream-warning';
-      warn.textContent = warnText;
+      warn.className = cls;
+      warn.textContent = text;
       details.appendChild(warn);
-    }
+    });
   }
 
   info.appendChild(title);
@@ -1840,8 +1966,9 @@ function createListItem(item, index, type){
     const isMQueued = queuedMusicNext === item;
     const mqBtn = document.createElement('button');
     mqBtn.className = 'queue-next-btn' + (isMQueued ? ' queued' : '');
-    mqBtn.textContent = isMQueued ? '▶ Queued' : '▶ Queue';
     mqBtn.title = 'Queue this to play next after current song finishes';
+    mqBtn.appendChild(faIcon('forward-step'));
+    mqBtn.appendChild(document.createTextNode(isMQueued ? ' Queued' : ' Queue'));
     mqBtn.addEventListener('click', e => {
       e.stopPropagation();
       queuedMusicNext = (queuedMusicNext === item) ? null : item;
@@ -1854,8 +1981,9 @@ function createListItem(item, index, type){
     const isQueued = queuedMediaNext === item;
     const queueBtn = document.createElement('button');
     queueBtn.className = 'queue-next-btn' + (isQueued ? ' queued' : '');
-    queueBtn.textContent = isQueued ? '▶ Queued' : '▶ Queue';
     queueBtn.title = 'Queue this to play next after current item finishes';
+    queueBtn.appendChild(faIcon('forward-step'));
+    queueBtn.appendChild(document.createTextNode(isQueued ? ' Queued' : ' Queue'));
     queueBtn.addEventListener('click', e => {
       e.stopPropagation();
       queuedMediaNext = (queuedMediaNext === item) ? null : item;
@@ -1864,9 +1992,23 @@ function createListItem(item, index, type){
     actions.appendChild(queueBtn);
   }
 
-  const up = document.createElement('button'); up.textContent = '↑';
-  const down = document.createElement('button'); down.textContent = '↓';
-  const remove = document.createElement('button'); remove.textContent = 'Delete';
+  if (type === 'music' || type === 'media') {
+    const bpBtn = document.createElement('button');
+    bpBtn.type = 'button';
+    bpBtn.className = 'breakpoint-btn' + (item.breakpoint ? ' bp-active' : '');
+    bpBtn.title = item.breakpoint ? 'Remove breakpoint' : 'Set breakpoint — autoplay stops here';
+    bpBtn.appendChild(faIcon('hand'));
+    bpBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      item.breakpoint = !item.breakpoint;
+      if (type === 'music') renderMusicQueue(); else renderMediaQueue();
+    });
+    actions.appendChild(bpBtn);
+  }
+
+  const up = document.createElement('button'); up.title = 'Move up'; up.appendChild(faIcon('arrow-up'));
+  const down = document.createElement('button'); down.title = 'Move down'; down.appendChild(faIcon('arrow-down'));
+  const remove = document.createElement('button'); remove.title = 'Delete'; remove.appendChild(faIcon('trash'));
   up.addEventListener('click', e=>{ e.stopPropagation(); moveItem(type, index, -1); });
   down.addEventListener('click', e=>{ e.stopPropagation(); moveItem(type, index, 1); });
   remove.addEventListener('click', e=>{ e.stopPropagation(); removeItem(type, index); });
@@ -1876,8 +2018,13 @@ function createListItem(item, index, type){
   li.appendChild(content);
 
   li.addEventListener('click', ()=>{
-    if (type === 'music') playSongAt(index);
-    else showMediaAt(index);
+    if (type === 'music') {
+      if (item.breakpoint && !confirm(`⛔ "${item.name}" is a breakpoint.\n\nProceed past this breakpoint?`)) return;
+      playSongAt(index);
+    } else {
+      if (item.breakpoint && !confirm(`⛔ "${item.name}" is a breakpoint.\n\nProceed past this breakpoint?`)) return;
+      showMediaAt(index);
+    }
   });
 
   return li;
@@ -2042,7 +2189,7 @@ function makeSoundboardButton(s) {
   starBtn.type = 'button';
   starBtn.className = 'sb-star-btn' + (s.starred ? ' starred' : '');
   starBtn.title = s.starred ? 'Unstar' : 'Star';
-  starBtn.textContent = '★';
+  starBtn.appendChild(faIcon('star'));
   starBtn.addEventListener('click', e => {
     e.stopPropagation();
     s.starred = !s.starred;
@@ -2053,7 +2200,7 @@ function makeSoundboardButton(s) {
   deleteBtn.type = 'button';
   deleteBtn.className = 'sb-delete-btn';
   deleteBtn.title = 'Delete';
-  deleteBtn.textContent = '×';
+  deleteBtn.appendChild(faIcon('xmark'));
   deleteBtn.addEventListener('click', e => {
     e.stopPropagation();
     const idx = soundboardSounds.indexOf(s);
@@ -2287,7 +2434,10 @@ musicPrev.addEventListener('click', ()=>{
     try { ytPlayer.previousVideo(); return; } catch {}
   }
   const prevIndex = currentSongIndex === -1 ? findPreviousPlayableSongIndex(songs.length) : findPreviousPlayableSongIndex(currentSongIndex);
-  if (prevIndex !== -1) playSongAt(prevIndex);
+  if (prevIndex !== -1) {
+    if (songs[prevIndex].breakpoint && !confirm(`⛔ "${songs[prevIndex].name}" is a breakpoint.\n\nProceed past this breakpoint?`)) return;
+    playSongAt(prevIndex);
+  }
 });
 musicNext.addEventListener('click', ()=>{
   const current = currentSongIndex >= 0 ? songs[currentSongIndex] : null;
@@ -2295,7 +2445,10 @@ musicNext.addEventListener('click', ()=>{
     try { ytPlayer.nextVideo(); return; } catch {}
   }
   const nextIndex = currentSongIndex === -1 ? findNextPlayableSongIndex(-1) : findNextPlayableSongIndex(currentSongIndex);
-  if (nextIndex !== -1) playSongAt(nextIndex);
+  if (nextIndex !== -1) {
+    if (songs[nextIndex].breakpoint && !confirm(`⛔ "${songs[nextIndex].name}" is a breakpoint.\n\nProceed past this breakpoint?`)) return;
+    playSongAt(nextIndex);
+  }
 });
 
 musicAudio.addEventListener('timeupdate', ()=>{
@@ -2323,12 +2476,24 @@ musicAudio.addEventListener('ended', ()=>{
   }
   const next = findNextPlayableSongIndex(currentSongIndex);
   if (next !== -1) {
+    if (songs[next].breakpoint) {
+      musicPlaying = false; updateMusicUI(); updateButtonStates();
+      setStatus('⛔ Stopped at breakpoint: ' + songs[next].name);
+      setTimeout(() => setStatus(''), 5000);
+      return;
+    }
     playSongAt(next);
     return;
   }
   if (musicLoopMode === 'all') {
     const first = findNextPlayableSongIndex(-1);
     if (first !== -1) {
+      if (songs[first].breakpoint) {
+        musicPlaying = false; updateMusicUI(); updateButtonStates();
+        setStatus('⛔ Stopped at breakpoint: ' + songs[first].name);
+        setTimeout(() => setStatus(''), 5000);
+        return;
+      }
       playSongAt(first);
       return;
     }
@@ -2521,8 +2686,16 @@ function openDisplayWindow(){
 }
 
 openDisplay.addEventListener('click', openDisplayWindow);
-mediaPrevPreview?.addEventListener('click', () => showMediaAt(Math.max(0, currentMediaIndex - 1)));
-mediaNextPreview?.addEventListener('click', () => showMediaAt(Math.min(media.length - 1, currentMediaIndex + 1)));
+mediaPrevPreview?.addEventListener('click', () => {
+  const idx = Math.max(0, currentMediaIndex - 1);
+  if (media[idx]?.breakpoint && !confirm(`⛔ "${media[idx].name}" is a breakpoint.\n\nProceed past this breakpoint?`)) return;
+  showMediaAt(idx);
+});
+mediaNextPreview?.addEventListener('click', () => {
+  const idx = Math.min(media.length - 1, currentMediaIndex + 1);
+  if (media[idx]?.breakpoint && !confirm(`⛔ "${media[idx].name}" is a breakpoint.\n\nProceed past this breakpoint?`)) return;
+  showMediaAt(idx);
+});
 window.addEventListener('resize', refreshMediaPreviewSize);
 
 window.addEventListener('message', e => {
@@ -2657,7 +2830,7 @@ function updateMediaMirror(item, autoplay = true){
       video.style.objectFit = 'contain';
       video.addEventListener('timeupdate', ()=> updateQueueProgress('media'));
       mediaMirrorContent.appendChild(video);
-    } else if (item.type === 'youtube-embed' || item.type === 'gdrive-embed') {
+    } else if (item.type === 'youtube-embed' || item.type === 'gdrive-embed' || item.type === 'gslides-embed') {
       const iframe = document.createElement('iframe');
       iframe.src = item.embedUrl || '';
       iframe.style.cssText = 'width:100%;height:100%;border:0;border-radius:8px;';
@@ -2670,7 +2843,7 @@ function updateMediaMirror(item, autoplay = true){
     refreshMediaPreviewSize();
   }
   // Show/hide mirror unsync warning for web embeds
-  const isEmbed = !!(item && (item.type === 'youtube-embed' || item.type === 'gdrive-embed'));
+  const isEmbed = !!(item && (item.type === 'youtube-embed' || item.type === 'gdrive-embed' || item.type === 'gslides-embed'));
   if (mediaMirror) mediaMirror.classList.toggle('mirror-unsync', isEmbed);
   const unsyncEl = document.getElementById('mirrorUnsyncWarning');
   if (unsyncEl) unsyncEl.style.display = isEmbed ? '' : 'none';
@@ -2724,7 +2897,7 @@ function renderPreviewCard(button, item, label){
   } else {
     const icon = document.createElement('div');
     icon.className = 'preview-icon';
-    icon.textContent = item.type.startsWith('video/') ? 'Video' : item.type === 'youtube-embed' ? 'YouTube' : item.type === 'gdrive-embed' ? 'Drive' : item.type === 'slide' ? 'Slide' : 'Media';
+    icon.textContent = item.type.startsWith('video/') ? 'Video' : item.type === 'youtube-embed' ? 'YouTube' : item.type === 'gdrive-embed' ? 'Drive' : item.type === 'gslides-embed' ? 'Slides' : item.type === 'slide' ? 'Slide' : 'Media';
     thumbWrapper.appendChild(icon);
   }
   const title = document.createElement('div');
@@ -2744,7 +2917,7 @@ function scheduleMediaAdvance(){
   if (media.length===0 || currentMediaIndex < 0) return;
   const current = media[currentMediaIndex];
   if (!current) return;
-  if (current.type.startsWith('video/') || current.type === 'youtube-embed' || current.type === 'gdrive-embed') {
+  if (current.type.startsWith('video/') || current.type === 'youtube-embed' || current.type === 'gdrive-embed' || current.type === 'gslides-embed') {
     // wait for video ended event; embeds have no ended detection on static sites
     return;
   }
@@ -2769,6 +2942,12 @@ function advanceMedia(){
   }
   const nextIndex = findNextPlayableMediaIndex(currentMediaIndex, 1);
   if (nextIndex !== -1) {
+    if (media[nextIndex].breakpoint) {
+      mediaPlaying = false; mediaLooping = false; stopMediaLoop(); updateButtonStates();
+      setStatus('⛔ Stopped at breakpoint: ' + media[nextIndex].name);
+      setTimeout(() => setStatus(''), 5000);
+      return;
+    }
     currentMediaIndex = nextIndex;
     showMediaAt(currentMediaIndex);
     return;
@@ -2776,6 +2955,12 @@ function advanceMedia(){
   if (mediaLoopMode === 'all') {
     const firstIndex = findNextPlayableMediaIndex(-1, 1);
     if (firstIndex !== -1) {
+      if (media[firstIndex].breakpoint) {
+        mediaPlaying = false; mediaLooping = false; stopMediaLoop(); updateButtonStates();
+        setStatus('⛔ Stopped at breakpoint: ' + media[firstIndex].name);
+        setTimeout(() => setStatus(''), 5000);
+        return;
+      }
       currentMediaIndex = firstIndex;
       showMediaAt(currentMediaIndex);
       return;
@@ -2817,11 +3002,17 @@ if (mediaLoopModeSelect) {
 // Media previous/next navigation
 mediaPrev.addEventListener('click', ()=>{
   const prevIndex = currentMediaIndex === -1 ? findNextPlayableMediaIndex(media.length, -1) : findNextPlayableMediaIndex(currentMediaIndex, -1);
-  if (prevIndex !== -1) showMediaAt(prevIndex);
+  if (prevIndex !== -1) {
+    if (media[prevIndex].breakpoint && !confirm(`⛔ "${media[prevIndex].name}" is a breakpoint.\n\nProceed past this breakpoint?`)) return;
+    showMediaAt(prevIndex);
+  }
 });
 mediaNext.addEventListener('click', ()=>{
   const nextIndex = currentMediaIndex === -1 ? findNextPlayableMediaIndex(-1, 1) : findNextPlayableMediaIndex(currentMediaIndex, 1);
-  if (nextIndex !== -1) showMediaAt(nextIndex);
+  if (nextIndex !== -1) {
+    if (media[nextIndex].breakpoint && !confirm(`⛔ "${media[nextIndex].name}" is a breakpoint.\n\nProceed past this breakpoint?`)) return;
+    showMediaAt(nextIndex);
+  }
 });
 
 function stopMediaLoop(){

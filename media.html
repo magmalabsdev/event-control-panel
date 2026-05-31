@@ -88,7 +88,7 @@
         v.addEventListener('ended', ()=> sendMessageToOpener({type:'videoEnded'}));
         displayArea.appendChild(v);
         currentVideo = v;
-      } else if (item.type === 'youtube-embed' || item.type === 'gdrive-embed') {
+      } else if (item.type === 'youtube-embed' || item.type === 'gdrive-embed' || item.type === 'gslides-embed') {
         const iframe = document.createElement('iframe');
         let src = item.embedUrl || '';
         if (item.type === 'youtube-embed' && item.autoplay) {

@@ -285,6 +285,15 @@ body.light-mode.icons-mode button.action-button::before{background:#222}
 body.icons-mode button.action-button.active-play::before,
 body.icons-mode button.action-button.active-pause::before,
 body.icons-mode button.action-button.active-announcement::before{background:#fff}
+/* High contrast + icons: invert icon color to match inverted button background */
+body.high-contrast.icons-mode button.action-button::before{background:#111}
+body.high-contrast.icons-mode button.action-button.active-play::before,
+body.high-contrast.icons-mode button.action-button.active-pause::before,
+body.high-contrast.icons-mode button.action-button.active-announcement::before{background:#fff}
+body.light-mode.high-contrast.icons-mode button.action-button::before{background:#eee}
+body.light-mode.high-contrast.icons-mode button.action-button.active-play::before,
+body.light-mode.high-contrast.icons-mode button.action-button.active-pause::before,
+body.light-mode.high-contrast.icons-mode button.action-button.active-announcement::before{background:#fff}
 
 /* Play / Autoplay */
 body.icons-mode #musicPlay::before,body.icons-mode #mediaPlay::before,body.icons-mode #cpMusicPlay::before{-webkit-mask-image:url(icons/play.svg);mask-image:url(icons/play.svg)}
@@ -553,6 +562,29 @@ body.light-mode .queue-next-btn.queued{background:#7055e5;border-color:#9070ff;c
 .media-mirror.mirror-unsync h4{color:#e88}
 body.light-mode .mirror-unsync-warning{background:rgba(180,40,40,.08);border-color:rgba(180,40,40,.3);color:#b33}
 body.light-mode .media-mirror.mirror-unsync{border-color:#c44;box-shadow:0 0 0 2px rgba(200,60,60,.2)}
+
+/* ===== FA ICON UTILITY ===== */
+/* Inline SVG icon via CSS mask — color follows currentColor of parent button */
+.fa-icon{display:inline-block;width:.85em;height:.85em;background:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;vertical-align:-.1em;pointer-events:none;flex-shrink:0}
+/* Icon-only compact buttons (up/down/delete in list, breakpoint, soundboard actions) */
+li .item-actions button:has(.fa-icon){padding:5px 8px;min-width:28px}
+
+/* ===== BREAKPOINTS ===== */
+li.has-breakpoint{border-left:3px solid #d44 !important;padding-left:17px}
+.breakpoint-btn{padding:3px 7px;font-size:.78rem;border-radius:8px;border:1px solid #444;background:#2a2a2a;color:#777;cursor:pointer;transition:all .15s;line-height:1.4}
+.breakpoint-btn:hover{border-color:#888;color:#ccc;background:#333}
+.breakpoint-btn.bp-active{color:#e55;border-color:rgba(210,50,50,.5);background:rgba(200,50,50,.12)}
+body.light-mode li.has-breakpoint{border-left-color:#c33 !important}
+body.light-mode .breakpoint-btn{background:#ededf0;border-color:#c4c4c8;color:#888}
+body.light-mode .breakpoint-btn:hover{background:#d8d8dc;border-color:#888;color:#333}
+body.light-mode .breakpoint-btn.bp-active{color:#b33;border-color:rgba(180,40,40,.4);background:rgba(180,40,40,.08)}
+
+/* ===== VISUALS SOURCE BADGES ===== */
+.badge-gslides{background:#4285f4;color:#fff}
+.badge-web{background:#2a5cb8;color:#fff}
+/* Red severity warning */
+.stream-warning-red{display:block;font-size:.7rem;color:#f55;margin-top:3px;font-weight:400}
+body.light-mode .stream-warning-red{color:#c33}
 
 /* ===== SPOTIFY LOGIN WARNING ===== */
 .stream-warning-amber{color:#c8880a}
