@@ -2000,8 +2000,14 @@ function createListItem(item, index, type){
     bpBtn.appendChild(faIcon('hand'));
     bpBtn.addEventListener('click', e => {
       e.stopPropagation();
-      item.breakpoint = !item.breakpoint;
+      const setting = !item.breakpoint;
+      item.breakpoint = setting;
+      const queue = type === 'music' ? musicQueue : mediaQueue;
       if (type === 'music') renderMusicQueue(); else renderMediaQueue();
+      if (setting) {
+        const newLi = queue.querySelector(`[data-index="${index}"]`);
+        if (newLi) { newLi.classList.add('bp-just-set'); }
+      }
     });
     actions.appendChild(bpBtn);
   }
@@ -2615,7 +2621,16 @@ function updateMusicUI(){
   const cpSong = document.getElementById('cpCurrentSong');
   if (cpSong) cpSong.textContent = name;
   const lis = musicQueue.querySelectorAll('li');
-  lis.forEach(li=> li.classList.toggle('active', parseInt(li.dataset.index)===currentSongIndex));
+  lis.forEach(li => {
+    const isActive = parseInt(li.dataset.index) === currentSongIndex;
+    const wasActive = li.classList.contains('active');
+    li.classList.toggle('active', isActive);
+    if (isActive && !wasActive) {
+      li.classList.remove('item-just-selected');
+      void li.offsetWidth;
+      li.classList.add('item-just-selected');
+    }
+  });
   updateMusicProgression();
   updateStreamControlStates();
 }
@@ -2750,7 +2765,16 @@ function updateMediaUI(){
   const cpMedia = document.getElementById('cpCurrentMedia');
   if (cpMedia) cpMedia.textContent = name;
   const lis = mediaQueue.querySelectorAll('li');
-  lis.forEach(li=> li.classList.toggle('active', parseInt(li.dataset.index)===currentMediaIndex));
+  lis.forEach(li => {
+    const isActive = parseInt(li.dataset.index) === currentMediaIndex;
+    const wasActive = li.classList.contains('active');
+    li.classList.toggle('active', isActive);
+    if (isActive && !wasActive) {
+      li.classList.remove('item-just-selected');
+      void li.offsetWidth;
+      li.classList.add('item-just-selected');
+    }
+  });
   updateMediaNotesUI();
   updateQueueProgress('media');
   refreshMediaPreviewSize();
@@ -3962,3 +3986,12 @@ document.getElementById('clearAnnouncementBtn')?.addEventListener('click', clear
     if (e.key === 'Enter') { const q = e.target.value.trim(); if (q) search(q); }
   });
 })();
+
+// ===== GLOBAL BUTTON CLICK FLASH =====
+document.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn || btn.disabled) return;
+  btn.classList.remove('btn-clicked');
+  void btn.offsetWidth; // restart animation if clicked in quick succession
+  btn.classList.add('btn-clicked');
+}, { passive: true });

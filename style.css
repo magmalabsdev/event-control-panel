@@ -55,7 +55,7 @@ body{margin:0;background:#101010;color:#eee}
 .clock-mode-tabs{display:flex;width:100%;gap:4px;margin-bottom:8px;background:#101010;padding:3px;border-radius:8px;border:1px solid #2f2f2f;flex-shrink:0}
 .clock-mode-tab{flex:1;padding:5px 2px;font-size:.7rem;background:transparent;border:none;border-radius:6px;color:#888;cursor:pointer;text-align:center;text-transform:uppercase;font-weight:700;transition:all .2s;letter-spacing:.02em}
 .clock-mode-tab:hover{color:#eee;background:#2a2a2a;border-color:transparent}
-.clock-mode-tab.active{background:#383838;color:#fff}
+.clock-mode-tab.active{background:#7055e5;color:#fff;animation:tab-select-in .18s ease-out}
 .clock-display-content{width:100%;display:flex;flex-direction:column;align-items:center;gap:6px}
 .clock-display-content.hidden{display:none}
 .clock-controls{display:flex;gap:6px;width:100%}
@@ -121,7 +121,7 @@ body{margin:0;background:#101010;color:#eee}
 ul{list-style:none;padding:0;margin:12px 0;max-height:320px;overflow:auto}
 li{position:relative;padding:14px 14px 14px 20px;border-radius:16px;cursor:pointer;border:1px solid transparent;transition:background .2s,border-color .2s}
 li:hover{border-color:#5a5a5a;background:rgba(255,255,255,.03)}
-li.active{background:#351466;border-color:#6a3fa8}
+li.active{background:#351466;border-color:#7055e5;box-shadow:inset 0 0 0 1px rgba(112,85,229,.35)}
 li .progress-underlay{position:absolute;left:0;top:0;width:0;height:100%;background:rgba(255,255,255,.08);border-radius:16px;z-index:0;transition:width .2s ease}
 li .item-content{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px}
 li .detail-group{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -372,7 +372,7 @@ body.light-mode .cp-mirror-content-mini{color:#888}
 body.light-mode .ecp-card .note,body.light-mode .file-type-list,body.light-mode .cp-progression,body.light-mode #status{color:#666}
 body.light-mode .file-label{color:#444}
 body.light-mode li:hover{background:rgba(0,0,0,.04);border-color:#c8c8cc}
-body.light-mode li.active{background:#ede0ff;border-color:#9b6fd4}
+body.light-mode li.active{background:#ede0ff;border-color:#7055e5;box-shadow:inset 0 0 0 1px rgba(112,85,229,.25)}
 body.light-mode li .progress-underlay{background:rgba(0,0,0,.06)}
 body.light-mode li .item-info span{color:#333}
 body.light-mode li .item-actions button{background:#eaeaee;border-color:#c0c0c6;color:#111}
@@ -385,7 +385,7 @@ body.light-mode .cp-clock{background:#ededf0;border-color:#d0d0d4}
 body.light-mode .clock-mode-tabs{background:#e0e0e4;border-color:#d0d0d4}
 body.light-mode .clock-mode-tab{color:#666}
 body.light-mode .clock-mode-tab:hover{background:#d4d4d8;color:#111}
-body.light-mode .clock-mode-tab.active{background:#c8c8cc;color:#111}
+body.light-mode .clock-mode-tab.active{background:#7055e5;color:#fff;animation:tab-select-in .18s ease-out}
 body.light-mode .lap-item{background:#ededf0;border-color:#d0d0d4;color:#444}
 body.light-mode .timer-settings span{color:#666}
 body.light-mode .media-preview{background:#ededf0;border-color:#c8c8cc;color:#111}
@@ -423,7 +423,7 @@ body.high-contrast .soundboard-button{background:#d8d8dc;color:#111;border-color
 body.high-contrast .soundboard-button:hover{background:#e8e8ec}
 body.high-contrast .mode-button span{background:#d8d8dc;color:#111;border-color:#888}
 body.high-contrast .mode-button:hover span{background:#e8e8ec}
-body.high-contrast .clock-mode-tab.active{background:#d8d8dc;color:#111}
+body.high-contrast .clock-mode-tab.active{background:#7055e5 !important;color:#fff !important;border-color:#9070ff !important}
 body.high-contrast li .item-actions button{background:#d8d8dc;color:#111;border-color:#888}
 body.high-contrast li .item-actions button:hover{background:#e8e8ec}
 body.high-contrast button.action-button.inactive{background:#888;color:#111;border-color:#aaa}
@@ -434,7 +434,7 @@ body.light-mode.high-contrast .soundboard-button{background:#1e1e22;color:#eee;b
 body.light-mode.high-contrast .soundboard-button:hover{background:#2e2e34}
 body.light-mode.high-contrast .mode-button span{background:#1e1e22;color:#eee;border-color:#777}
 body.light-mode.high-contrast .mode-button:hover span{background:#2e2e34}
-body.light-mode.high-contrast .clock-mode-tab.active{background:#1e1e22;color:#eee}
+body.light-mode.high-contrast .clock-mode-tab.active{background:#7055e5 !important;color:#fff !important;border-color:#9070ff !important}
 body.light-mode.high-contrast li .item-actions button{background:#1e1e22;color:#eee;border-color:#777}
 body.light-mode.high-contrast li .item-actions button:hover{background:#2e2e34}
 body.light-mode.high-contrast button.action-button.inactive{background:#666;color:#eee;border-color:#555}
@@ -542,8 +542,8 @@ body.realistic-mode.icons-mode button.action-button{
 /* Queue next button in media list */
 .queue-next-btn{padding:4px 8px;font-size:.75rem;border-radius:8px;border:1px solid #555;background:#2e2e2e;color:#aaa;white-space:nowrap;transition:background .15s,color .15s,border-color .15s}
 .queue-next-btn:hover{background:#3a3a3a;border-color:#888;color:#eee}
-.queue-next-btn.queued{background:#7055e5;border-color:#9070ff;color:#fff}
-.queue-next-btn.queued:hover{background:#5a40d0;border-color:#7055e5}
+.queue-next-btn.queued{background:#7055e5 !important;border-color:#9070ff !important;color:#fff !important}
+.queue-next-btn.queued:hover{background:#5a40d0 !important;border-color:#7055e5 !important}
 
 /* ===== LIGHT MODE additions ===== */
 body.light-mode .sb-star-btn,body.light-mode .sb-delete-btn{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.14);color:#999}
@@ -570,14 +570,16 @@ body.light-mode .media-mirror.mirror-unsync{border-color:#c44;box-shadow:0 0 0 2
 li .item-actions button:has(.fa-icon){padding:5px 8px;min-width:28px}
 
 /* ===== BREAKPOINTS ===== */
-li.has-breakpoint{border-left:3px solid #d44 !important;padding-left:17px}
+li.has-breakpoint{border-left:3px solid #d44 !important;padding-left:17px;background:rgba(200,50,50,.05)}
 .breakpoint-btn{padding:3px 7px;font-size:.78rem;border-radius:8px;border:1px solid #444;background:#2a2a2a;color:#777;cursor:pointer;transition:all .15s;line-height:1.4}
 .breakpoint-btn:hover{border-color:#888;color:#ccc;background:#333}
-.breakpoint-btn.bp-active{color:#e55;border-color:rgba(210,50,50,.5);background:rgba(200,50,50,.12)}
+.breakpoint-btn.bp-active{color:#fff !important;border-color:#c33 !important;background:#c44 !important}
+.breakpoint-btn.bp-active:hover{background:#d55 !important;border-color:#e55 !important}
 body.light-mode li.has-breakpoint{border-left-color:#c33 !important}
 body.light-mode .breakpoint-btn{background:#ededf0;border-color:#c4c4c8;color:#888}
 body.light-mode .breakpoint-btn:hover{background:#d8d8dc;border-color:#888;color:#333}
-body.light-mode .breakpoint-btn.bp-active{color:#b33;border-color:rgba(180,40,40,.4);background:rgba(180,40,40,.08)}
+body.light-mode .breakpoint-btn.bp-active{color:#fff !important;border-color:#b33 !important;background:#c44 !important}
+body.light-mode .breakpoint-btn.bp-active:hover{background:#d55 !important}
 
 /* ===== VISUALS SOURCE BADGES ===== */
 .badge-gslides{background:#4285f4;color:#fff}
@@ -633,3 +635,44 @@ body.light-mode .spotify-result-name{color:#111}
 body.light-mode .spotify-result-artist{color:#666}
 @media (max-width:900px){.spotify-player-layout{grid-template-columns:1fr}}
 body.light-mode .queue-next-btn.queued{background:#7055e5;border-color:#9070ff;color:#fff}
+/* ===== CLICK FEEDBACK & SELECTION ANIMATIONS ===== */
+
+/* All buttons: immediate press feel */
+button:not(:disabled):active{transform:scale(0.96);filter:brightness(0.78);transition:transform .05s,filter .05s}
+button{transition:background .2s,border-color .2s,color .2s,transform .1s,filter .1s}
+
+/* Brief brightness flash after click (JS adds .btn-clicked) */
+@keyframes btn-click-flash{
+  0%{filter:brightness(1.65)}
+  100%{filter:brightness(1)}
+}
+button.btn-clicked{animation:btn-click-flash .22s ease-out forwards}
+
+/* Queue item — flash when newly selected */
+@keyframes item-select-flash{
+  0%{filter:brightness(1.8)}
+  100%{filter:brightness(1)}
+}
+li.item-just-selected{animation:item-select-flash .3s ease-out forwards}
+
+/* Breakpoint — flash when toggled on */
+@keyframes bp-set-flash{
+  0%{box-shadow:0 0 0 3px rgba(220,60,60,.55),inset 0 0 12px rgba(220,60,60,.2)}
+  100%{box-shadow:none}
+}
+li.bp-just-set{animation:bp-set-flash .5s ease-out forwards}
+
+/* Clock/Stopwatch/Timer tab — flash when selected */
+@keyframes tab-select-in{
+  0%{filter:brightness(1.55)}
+  100%{filter:brightness(1)}
+}
+
+/* ===== PERSISTENT COLORED STATES (stay colored until deselected) ===== */
+/* Start button — green while stopwatch/timer is running */
+body:not(.realistic-mode) button.action-button.btn-running{background:#2a8 !important;color:#011 !important;border-color:#2f9 !important}
+body:not(.realistic-mode) button.action-button.btn-running:hover{background:#3b9 !important;border-color:#4fc !important;color:#011 !important}
+/* Icon color on green btn-running button */
+body.icons-mode button.action-button.btn-running::before{background:#011 !important}
+body.high-contrast.icons-mode button.action-button.btn-running::before{background:#011 !important}
+body.light-mode.high-contrast.icons-mode button.action-button.btn-running::before{background:#011 !important}
