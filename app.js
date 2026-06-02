@@ -3948,18 +3948,20 @@ document.getElementById('clearAnnouncementBtn')?.addEventListener('click', clear
 
 // ===== SETTINGS PAGE =====
 (function initSettings() {
-  function applyTheme(lightMode, highContrast, iconsMode, realisticMode) {
-    document.body.classList.toggle('light-mode', lightMode);
-    document.body.classList.toggle('high-contrast', highContrast);
-    document.body.classList.toggle('icons-mode', iconsMode);
+  function applyTheme(lightMode, highContrast, iconsMode, realisticMode, advancedMode) {
+    document.body.classList.toggle('light-mode',     lightMode);
+    document.body.classList.toggle('high-contrast',  highContrast);
+    document.body.classList.toggle('icons-mode',     iconsMode);
     document.body.classList.toggle('realistic-mode', realisticMode);
+    document.body.classList.toggle('advanced-mode',  advancedMode);
   }
 
   const lightMode     = localStorage.getItem('ecp-light-mode')      === 'true';
   const highContrast  = localStorage.getItem('ecp-high-contrast')    === 'true';
   const iconsMode     = localStorage.getItem('ecp-icons-mode')       === 'true';
   const realisticMode = localStorage.getItem('ecp-realistic-mode')   === 'true';
-  applyTheme(lightMode, highContrast, iconsMode, realisticMode);
+  const advancedMode  = localStorage.getItem('ecp-advanced-mode')    === 'true';
+  applyTheme(lightMode, highContrast, iconsMode, realisticMode, advancedMode);
 
   const chkLight     = document.getElementById('settingLightMode');
   const chkContrast  = document.getElementById('settingHighContrast');
@@ -3970,6 +3972,16 @@ document.getElementById('clearAnnouncementBtn')?.addEventListener('click', clear
   if (chkContrast)  chkContrast.checked  = highContrast;
   if (chkIcons)     chkIcons.checked     = iconsMode;
   if (chkRealistic) chkRealistic.checked = realisticMode;
+
+  // Complexity radio
+  document.querySelectorAll('input[name="complexity"]').forEach(r => {
+    r.checked = (r.value === 'advanced') === advancedMode;
+    r.addEventListener('change', () => {
+      const isAdv = r.value === 'advanced';
+      localStorage.setItem('ecp-advanced-mode', isAdv);
+      document.body.classList.toggle('advanced-mode', isAdv);
+    });
+  });
 
   chkLight?.addEventListener('change', function () {
     localStorage.setItem('ecp-light-mode', this.checked);

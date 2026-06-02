@@ -511,7 +511,7 @@
 <h2>Logo &amp; Banners</h2>
 <p>Click the <strong>Event Control Panel</strong> banner to reload the app. Links to <a href="https://magmalabs.dev/">MagmaLabs</a> and <a href="https://ko-fi.com/magmalabs">Ko-fi</a> open in new tabs.</p>
 <p>This panel is always displayed in dark mode regardless of the active theme — its colour never changes.</p>
-<p>A small <strong>version tag</strong> appears below the byline, formatted as <code>vYY.MM.N</code> where <code>YY</code> is the two-digit year, <code>MM</code> is the month, and <code>N</code> is the sequential commit number within that month (e.g. <code>v26.6.3</code> = third deployment in June 2026). The version is fetched automatically from the GitHub API on load and cached for the browser session; if the API is unreachable it shows <code>vYY.MM.?</code>.</p>
+<p>A small <strong>version tag</strong> appears below the byline showing the current deployment version (e.g. <code>v26.6.3</code> = third release in June 2026). Useful when reporting issues.</p>
 <hr />
 <h2>Session</h2>
 <p>Presets store the complete app state: music queue, soundboard, media queue, all settings, and notes. They are saved as <code>.ecp</code> files (JSON).</p>
@@ -745,15 +745,14 @@
 </tr>
 <tr>
 <td>PDF</td>
-<td>Converted to individual page images on import using PDF.js</td>
+<td>Each page becomes a separate queue item</td>
 </tr>
 <tr>
 <td>PowerPoint</td>
-<td><code>.pptx</code> files are rendered to slide images on import</td>
+<td>Each slide becomes a separate queue item</td>
 </tr>
 </tbody>
 </table>
-<p>PDF and PPTX conversion happens entirely in the browser — no server is required. Each page/slide becomes a separate queue item.</p>
 <h3>URLs</h3>
 <p>Paste a link into the URL input and click <strong>Add</strong> (or press Enter).</p>
 <table>
@@ -788,12 +787,12 @@
 <tr>
 <td>Remote PDF (<code>.pdf</code>)</td>
 <td>Fetched and converted to pages</td>
-<td>⚠️ Fetch may fail if the server blocks cross-origin requests</td>
+<td>⚠️ The file must be publicly accessible; some servers will block the request</td>
 </tr>
 <tr>
 <td>Remote PPTX (<code>.pptx</code>)</td>
 <td>Fetched and rendered to slides</td>
-<td>⚠️ Fetch may fail if the server blocks cross-origin requests</td>
+<td>⚠️ The file must be publicly accessible; some servers will block the request</td>
 </tr>
 </tbody>
 </table>
@@ -928,50 +927,43 @@
 <section id="settings" class="page-section">
   <div class="section-header">Settings</div>
   <h1>Settings Page</h1>
-<p>The Settings page controls visual appearance and links to project resources. All appearance settings are persisted in <code>localStorage</code> and restored on every page load.</p>
+<p>The Settings page controls the visual appearance of ECP. All settings are saved automatically and restored every time the page is opened.</p>
 <hr />
 <h2>GitHub Repository</h2>
 <p>A banner at the top of the page links to the <a href="https://github.com/MagmaSpeedCubes/event-control-panel">Event Control Panel GitHub repository</a>. Click it to open the repo in a new tab.</p>
 <hr />
 <h2>Appearance</h2>
 <h3>Light Mode</h3>
-<p>Switches between the default dark theme and a light theme.</p>
-<ul>
-<li><strong>Off (default)</strong>: Dark background (<code>#101010</code>), light text. Suited for dim environments such as event backstage areas.</li>
-<li><strong>On</strong>: Light background (<code>#f0f2f5</code>), dark text. Suited for well-lit environments.</li>
-</ul>
-<p>The logo and branding panel on the Control Panel always renders in dark mode regardless of this setting.</p>
+<p>Switches between the default <strong>dark</strong> theme and a <strong>light</strong> theme. Dark mode is suited for dim backstage environments; light mode works better in brightly lit rooms.</p>
+<p>The logo and branding panel on the Control Panel always stays dark regardless of this setting.</p>
 <hr />
 <h3>High Contrast</h3>
 <p>Inverts button colours relative to the background, making interactive controls more visually distinct from panels.</p>
 <table>
 <thead>
 <tr>
-<th>Theme + High Contrast</th>
-<th>Button background</th>
-<th>Button text</th>
+<th>Theme</th>
+<th>Button appearance</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Dark + HC</td>
-<td>Light grey (<code>#d8d8dc</code>)</td>
-<td>Dark (<code>#111</code>)</td>
+<td>Dark + High Contrast</td>
+<td>Light buttons on dark panels</td>
 </tr>
 <tr>
-<td>Light + HC</td>
-<td>Dark charcoal (<code>#1e1e22</code>)</td>
-<td>Light (<code>#eee</code>)</td>
+<td>Light + High Contrast</td>
+<td>Dark buttons on light panels</td>
 </tr>
 </tbody>
 </table>
-<p>Active buttons (green/red for play/pause/announcement states) are exempt — their indicator colours are preserved.</p>
+<p>Active buttons (green for playing, red for paused, amber for frozen) are exempt — their status colours are always preserved.</p>
 <p>The logo and branding panel is exempt from High Contrast.</p>
 <hr />
 <h3>Icon Navigation</h3>
-<p>When enabled, all <strong>action buttons</strong> (play, pause, next, previous, shuffle, etc.) replace their text labels with Font Awesome SVG icons from the <a href="https://fontawesome.com/search?ic=free-collection">free collection</a>.</p>
+<p>When enabled, all <strong>action buttons</strong> (play, pause, next, previous, shuffle, etc.) replace their text labels with icons from <a href="https://fontawesome.com/search?ic=free-collection">Font Awesome Free</a>.</p>
 <ul>
-<li>Icons respond to all theme changes: light/dark, high contrast, active states.</li>
+<li>Icons follow all theme changes: light/dark, high contrast, active states.</li>
 <li>The navigation tabs (<strong>Announce</strong>, <strong>Audio</strong>, etc.) are <strong>not</strong> affected — they always show text.</li>
 <li>Utility buttons (up/down/delete in queues, soundboard star/delete, breakpoint, queue-next) always show icons regardless of this setting.</li>
 </ul>
@@ -981,30 +973,30 @@
 <table>
 <thead>
 <tr>
-<th>State</th>
-<th>LED colour</th>
+<th>LED state</th>
+<th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Idle / inactive</td>
 <td>Dark green (unlit)</td>
+<td>Idle</td>
 </tr>
 <tr>
-<td>Playing / active / running</td>
 <td>Bright green with glow</td>
+<td>Playing / active / running</td>
 </tr>
 <tr>
-<td>Paused</td>
 <td>Amber with glow</td>
+<td>Paused</td>
 </tr>
 </tbody>
 </table>
-<p>Button body colour is always dark charcoal (<code>#25272b</code>) regardless of Light Mode or High Contrast — the LEDs communicate state instead of background colour changes.</p>
-<p>Compatible with Icon Navigation mode: the LED bars appear above the icon.</p>
+<p>Button colour stays constant regardless of Light Mode or High Contrast — the LED bars communicate state instead.</p>
+<p>Compatible with Icon Navigation: the LED bars appear above the icon.</p>
 <hr />
 <h2>Feedback</h2>
-<p>A Fillout embed form at the bottom of the page is available for submitting feedback, bug reports, or feature requests directly within ECP.</p>
+<p>A feedback form at the bottom of the page can be used to submit bug reports or feature requests.</p>
 </section>
 
 

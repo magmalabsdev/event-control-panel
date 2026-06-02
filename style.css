@@ -716,3 +716,30 @@ body.light-mode .soundboard-item.sb-playing .soundboard-button,
 body.light-mode button.sb-cp-btn.sb-playing{background:#2a8 !important;border-color:#2f9 !important;color:#011 !important}
 .sb-norm-label.sb-norm-pos{color:#2d9;opacity:.85}
 .sb-norm-label.sb-norm-neg{color:#e55;opacity:.85}
+
+/* ===== COMPLEXITY MODE (Basic / Advanced) ===== */
+/* Basic mode: hide all advanced-marked controls */
+body:not(.advanced-mode) .adv                { display: none !important; }
+body:not(.advanced-mode) .breakpoint-btn     { display: none !important; }
+body:not(.advanced-mode) .queue-next-btn     { display: none !important; }
+body:not(.advanced-mode) .skip-toggle        { display: none !important; }
+
+/* Advanced mode: deep-blue card highlight on advanced controls */
+body.advanced-mode .adv {
+  background: rgba(8, 26, 92, 0.52);
+  border-left: 2px solid #1e4ed8;
+  border-radius: 0 6px 6px 0;
+  padding: 5px 10px 5px 12px;
+  margin: 3px 0;
+}
+/* Inline labels sit inside a flex row — tighter padding, no block margin */
+body.advanced-mode label.adv {
+  padding: 3px 8px 3px 10px;
+  margin: 0;
+  border-radius: 0 4px 4px 0;
+}
+/* Light mode: soften the tint */
+body.light-mode.advanced-mode .adv {
+  background: rgba(8, 26, 92, 0.1);
+  border-left-color: #3062f0;
+}

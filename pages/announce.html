@@ -26,9 +26,9 @@
             </div>
             <div class="row wrap" style="gap:12px;margin-bottom:8px">
               <label><input id="anPauseMusicDuringAnnouncement" type="checkbox" checked> Pause music</label>
-              <label><input id="anFadeMusic" type="checkbox"> Fade music</label>
+              <label class="adv"><input id="anFadeMusic" type="checkbox"> Fade music</label>
             </div>
-            <label style="font-size:.85rem;display:block;margin-bottom:8px">Soundboard cue:
+            <label class="adv" style="font-size:.85rem;display:block;margin-bottom:8px">Soundboard cue:
               <select id="intercomSoundCueSelect" style="margin-top:4px;width:100%;margin-top:4px">
                 <option value="">None</option>
               </select>
@@ -76,7 +76,7 @@
         <section class="panel announce-text-panel">
           <h3>Typed Announcement</h3>
           <textarea id="announcementTextInput" rows="3" placeholder="Type your announcement here..."></textarea>
-          <div class="announce-appearance-row">
+          <div class="announce-appearance-row adv">
             <label class="announce-color-label">Text color
               <input id="announcementTextColor" type="color" value="#ffffff">
             </label>
@@ -118,7 +118,7 @@
             <input id="announceSoundboardVolumeInput" type="number" min="0" max="200" step="1" value="100" class="sb-vol-input">
             <span class="sb-vol-pct">%</span>
           </div>
-          <div class="row" style="margin-top:6px;margin-bottom:4px;font-size:.85rem">
+          <div class="row adv" style="margin-top:6px;margin-bottom:4px;font-size:.85rem">
             <label><input id="announceStableVolume" type="checkbox"> Stable volume</label>
           </div>
           <div id="announceSoundboardGrid" class="soundboard-grid"></div>

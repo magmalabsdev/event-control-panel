@@ -30,7 +30,7 @@ Click the **Event Control Panel** banner to reload the app. Links to [MagmaLabs]
 
 This panel is always displayed in dark mode regardless of the active theme — its colour never changes.
 
-A small **version tag** appears below the byline, formatted as `vYY.MM.N` where `YY` is the two-digit year, `MM` is the month, and `N` is the sequential commit number within that month (e.g. `v26.6.3` = third deployment in June 2026). The version is fetched automatically from the GitHub API on load and cached for the browser session; if the API is unreachable it shows `vYY.MM.?`.
+A small **version tag** appears below the byline showing the current deployment version (e.g. `v26.6.3` = third release in June 2026). Useful when reporting issues.
 
 ---
 

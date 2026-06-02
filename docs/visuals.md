@@ -42,10 +42,8 @@ Use the file picker or drag files onto it. Supported formats:
 |------|---------|
 | Images | JPEG, PNG, GIF, WebP, BMP, SVG, and any browser-renderable image |
 | Video | MP4, WebM, MOV, and any browser-playable video format |
-| PDF | Converted to individual page images on import using PDF.js |
-| PowerPoint | `.pptx` files are rendered to slide images on import |
-
-PDF and PPTX conversion happens entirely in the browser — no server is required. Each page/slide becomes a separate queue item.
+| PDF | Each page becomes a separate queue item |
+| PowerPoint | Each slide becomes a separate queue item |
 
 ### URLs
 
@@ -57,8 +55,8 @@ Paste a link into the URL input and click **Add** (or press Enter).
 | Google Drive file | Embedded via Drive preview iframe | ⚠️ Amber — file must be publicly shared |
 | Google Slides | Embedded via Slides embed URL | 🔴 Red — must be published to the web; slide timing and navigation are controlled by Google, not ECP |
 | Direct image URL (`.jpg`, `.png`, `.gif`, `.webp`, `.svg`, `.avif`, `.tiff`) | Loaded as a normal image item | ⚠️ Amber — displayed from external URL; will break if source goes offline |
-| Remote PDF (`.pdf`) | Fetched and converted to pages | ⚠️ Fetch may fail if the server blocks cross-origin requests |
-| Remote PPTX (`.pptx`) | Fetched and rendered to slides | ⚠️ Fetch may fail if the server blocks cross-origin requests |
+| Remote PDF (`.pdf`) | Fetched and converted to pages | ⚠️ The file must be publicly accessible; some servers will block the request |
+| Remote PPTX (`.pptx`) | Fetched and rendered to slides | ⚠️ The file must be publicly accessible; some servers will block the request |
 
 > **Mirror sync warning:** YouTube, Google Drive, and Google Slides items render inside iframes. ECP cannot control or synchronise the mirror display for these — the mirror shows the iframe content but the Display Window must be controlled manually. A red warning banner appears on the Presenter mirror when an embed is active.
 
