@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Event Control Panel — Operator Manual</title>
+</head>
+<body>
+
+<!-- Cover page -->
+<div class="cover">
+  <div class="cover-logo">ECP</div>
+  <div class="cover-title">Event Control Panel</div>
+  <div class="cover-subtitle">Operator Manual</div>
+  <div class="cover-meta">MagmaLabs · github.com/MagmaSpeedCubes/event-control-panel</div>
+</div>
+
+<!-- TOC -->
+<div class="toc-page">
+  <h2 class="toc-heading">Contents</h2>
+  <ul><li><a href="#announce">Announce</a></li><li><a href="#audio">Audio</a></li><li><a href="#control-panel">Control Panel</a></li><li><a href="#visuals">Visuals</a></li><li><a href="#settings">Settings</a></li></ul>
+</div>
+
+
+<section id="announce" class="page-section">
+  <div class="section-header">Announce</div>
+  <h1>Announce Page</h1>
+<p>The Announce page is the primary screen for making live or recorded announcements during an event. It combines intercom controls, a shared clock widget, a typed on-screen announcement tool, and the full soundboard — all accessible without leaving the page.</p>
+<h2>Layout</h2>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Left</td>
+<td>Intercom panel · Clock/Stopwatch/Timer · Typed Announcement</td>
+</tr>
+<tr>
+<td>Right</td>
+<td>Soundboard</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Intercom</h2>
+<p>The intercom routes audio from a microphone to a speaker or audio output device.</p>
+<h3>Modes</h3>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Live</strong></td>
+<td>Microphone audio is passed through to the selected output device in real time.</td>
+</tr>
+<tr>
+<td><strong>Recorded</strong></td>
+<td>Audio is captured while the button is held active. When stopped, the recording is played back once through the output device.</td>
+</tr>
+</tbody>
+</table>
+<h3>Controls</h3>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Vol</strong></td>
+<td>Output volume of the intercom audio.</td>
+</tr>
+<tr>
+<td><strong>Input</strong></td>
+<td>Select the microphone source. Requires browser microphone permission (granted on first use).</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>Select the speaker or audio interface to route intercom audio to.</td>
+</tr>
+<tr>
+<td><strong>Pause music</strong></td>
+<td>Pauses the music queue automatically when the intercom is active, and resumes it when stopped.</td>
+</tr>
+<tr>
+<td><strong>Fade music</strong></td>
+<td>Instead of hard-pausing, fades music out when the intercom starts and fades back in when it stops.</td>
+</tr>
+<tr>
+<td><strong>Soundboard cue</strong></td>
+<td>Choose a loaded soundboard sound to play automatically — at the start of a live announcement, or immediately before a recorded playback begins. Set to <em>None</em> to disable.</td>
+</tr>
+<tr>
+<td><strong>Start/Stop Announcement</strong></td>
+<td>Activates or deactivates the intercom. Label changes to <strong>Start/Stop Recording</strong> when in Recorded mode.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Tip:</strong> The Announce and Control Panel pages share all intercom settings. Changes made on either page are reflected immediately on the other.</p>
+</blockquote>
+<hr />
+<h2>Clock / Stopwatch / Timer</h2>
+<p>A shared widget displaying one of three modes. The state is always in sync with the Control Panel clock widget.</p>
+<h3>Switching modes</h3>
+<p>Click the <strong>Clock</strong>, <strong>Stopwatch</strong>, or <strong>Timer</strong> tab to switch.</p>
+<h3>Clock</h3>
+<p>Displays the current local time, updated every second.</p>
+<h3>Stopwatch</h3>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Start / Pause</strong></td>
+<td>Begins or pauses the stopwatch.</td>
+</tr>
+<tr>
+<td><strong>Lap</strong></td>
+<td>Records the current elapsed time as a lap entry. Only enabled while running.</td>
+</tr>
+<tr>
+<td><strong>Reset</strong></td>
+<td>Stops and resets the stopwatch; clears all laps.</td>
+</tr>
+</tbody>
+</table>
+<p>Lap times are listed below the display in chronological order.</p>
+<h3>Timer</h3>
+<p>Set the countdown duration using the <strong>Min</strong> and <strong>Sec</strong> number inputs (editable while the timer is stopped). The display updates live as you type.</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Start / Pause</strong></td>
+<td>Begins or pauses the countdown.</td>
+</tr>
+<tr>
+<td><strong>Reset</strong></td>
+<td>Stops and resets the timer to the configured duration.</td>
+</tr>
+</tbody>
+</table>
+<p>When the timer reaches zero, the clock panel pulses red as an alarm until reset.</p>
+<hr />
+<h2>Typed Announcement</h2>
+<p>Sends a text overlay to the bottom of the <a href="../media.html">Display Window</a>. The overlay appears on top of whatever is currently being shown.</p>
+<h3>Fields</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Text area</strong></td>
+<td>The announcement message. Supports multi-line text.</td>
+</tr>
+<tr>
+<td><strong>Text color</strong></td>
+<td>Colour of the announcement text. Default: white.</td>
+</tr>
+<tr>
+<td><strong>Background</strong></td>
+<td>Fill colour of the announcement bar. Default: black.</td>
+</tr>
+<tr>
+<td><strong>Opacity</strong></td>
+<td>Transparency of the background (0% = fully transparent, 100% = solid).</td>
+</tr>
+<tr>
+<td><strong>Linger (s)</strong></td>
+<td>Seconds before the announcement auto-clears. Set to <strong>0</strong> to keep it on screen until manually cleared.</td>
+</tr>
+</tbody>
+</table>
+<h3>Buttons</h3>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Show on Screen</strong></td>
+<td>Sends the announcement to the Display Window. Opens the window if not already open.</td>
+</tr>
+<tr>
+<td><strong>Clear</strong></td>
+<td>Removes the announcement from the Display Window immediately.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> The Display Window must be open for announcements to appear. If it is not, clicking <strong>Show on Screen</strong> will open it first, which may cause a brief delay.</p>
+</blockquote>
+<hr />
+<h2>Soundboard (right column)</h2>
+<p>The Announce page soundboard is <strong>fully shared</strong> with the Audio page soundboard — any sounds loaded on one page appear on both. Volume changes are synced across pages.</p>
+<h3>Adding sounds</h3>
+<p>Click the file picker or drag audio files onto it. Supported formats: MP3, WAV, OGG, M4A, AAC, FLAC, and any other browser-playable audio format.</p>
+<h3>Controls</h3>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Soundboard volume</strong></td>
+<td>Master volume for all soundboard playback. Synced with the Audio page slider.</td>
+</tr>
+<tr>
+<td><strong>⭐ (Star)</strong></td>
+<td>Marks a sound as starred. Starred sounds appear in the dedicated <strong>Starred Sounds</strong> section on the Control Panel for one-click access during a show.</td>
+</tr>
+<tr>
+<td><strong>✕ (Delete)</strong></td>
+<td>Removes the sound from the soundboard permanently (does not delete the file on disk).</td>
+</tr>
+</tbody>
+</table>
+<p>Click any sound button to play it immediately. Sounds play on the selected output device at the soundboard volume level.</p>
+</section>
+
+<section id="audio" class="page-section">
+  <div class="section-header">Audio</div>
+  <h1>Audio Page</h1>
+<p>The Audio page manages background music playback and the shared soundboard. It supports local audio files, YouTube videos and playlists, and Spotify content.</p>
+<h2>Layout</h2>
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Left</td>
+<td>Music queue and playback controls</td>
+</tr>
+<tr>
+<td>Right</td>
+<td>Soundboard</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Music</h2>
+<h3>Adding music</h3>
+<p><strong>Local files</strong> — Use the file picker to add audio files from your computer. Supported formats: MP3, WAV, OGG, M4A, AAC, FLAC, and any browser-playable audio format. Duration is read automatically after loading.</p>
+<p><strong>URLs</strong> — Paste a link into the URL input and click <strong>Add</strong> (or press Enter). Supported URL types:</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Example URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>YouTube video</td>
+<td><code>https://www.youtube.com/watch?v=...</code></td>
+</tr>
+<tr>
+<td>YouTube playlist</td>
+<td><code>https://www.youtube.com/playlist?list=...</code></td>
+</tr>
+<tr>
+<td>Spotify track</td>
+<td><code>https://open.spotify.com/track/...</code></td>
+</tr>
+<tr>
+<td>Spotify album</td>
+<td><code>https://open.spotify.com/album/...</code></td>
+</tr>
+<tr>
+<td>Spotify playlist</td>
+<td><code>https://open.spotify.com/playlist/...</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Spotify note:</strong> Spotify items show an amber <em>"Full playback requires a Spotify login"</em> warning with a direct link to accounts.spotify.com. Log into Spotify in this browser before playback to get full tracks; free accounts receive 30-second previews via the embed player.</p>
+<p><strong>YouTube playlists:</strong> When a playlist starts playing, ECP expands it into individual track cards. Real titles are fetched in the background.</p>
+</blockquote>
+<hr />
+<h3>Playback controls</h3>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Autoplay</strong></td>
+<td>Starts playback from the current position (or first non-skipped item).</td>
+</tr>
+<tr>
+<td><strong>Pause</strong></td>
+<td>Pauses the current track.</td>
+</tr>
+<tr>
+<td><strong>Previous</strong></td>
+<td>Jumps to the previous non-skipped item. For YouTube playlist items, navigates within the active playlist.</td>
+</tr>
+<tr>
+<td><strong>Next</strong></td>
+<td>Advances to the next non-skipped item.</td>
+</tr>
+<tr>
+<td><strong>Loop mode</strong></td>
+<td><strong>Off</strong> — stop at end of queue. <strong>Loop single</strong> — repeat the current track indefinitely. <strong>Loop all</strong> — loop the entire queue.</td>
+</tr>
+<tr>
+<td><strong>Shuffle</strong></td>
+<td>Randomises the queue order in place.</td>
+</tr>
+<tr>
+<td><strong>Play on finish</strong></td>
+<td>When unchecked, playback stops after each track rather than advancing to the next.</td>
+</tr>
+<tr>
+<td><strong>Audio crossfade</strong></td>
+<td>Fades the current track out and the next track in over ~0.3 s. Not available for YouTube or Spotify sources.</td>
+</tr>
+<tr>
+<td><strong>Music volume</strong></td>
+<td>Channel volume, multiplied by the master volume on the Control Panel.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Queue items</h3>
+<p>Each item in the queue shows its title, duration (or source badge), and a row of action controls:</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Skip checkbox</strong></td>
+<td>Marks the item to be skipped by autoplay and navigation. The item remains in the queue but appears dimmed.</td>
+</tr>
+<tr>
+<td><strong>▶ Queue</strong></td>
+<td>Queues this item to play <em>immediately after the currently playing track</em>, overriding sequential advance for one step. Click again to dequeue.</td>
+</tr>
+<tr>
+<td><strong>✋ (Breakpoint)</strong></td>
+<td>Marks this item as a breakpoint. <strong>Autoplay silently stops before reaching a breakpoint item.</strong> Manual navigation (clicking, Next, Previous) shows a confirmation dialog before proceeding. The item is highlighted with a red left border.</td>
+</tr>
+<tr>
+<td><strong>↑ / ↓</strong></td>
+<td>Moves the item up or down in the queue.</td>
+</tr>
+<tr>
+<td><strong>🗑 (Delete)</strong></td>
+<td>Removes the item from the queue.</td>
+</tr>
+</tbody>
+</table>
+<p>Click the item title row to immediately start playback.</p>
+<hr />
+<h3>Stream source limitations</h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Crossfade</th>
+<th>Volume control</th>
+<th>Next/Prev</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local audio</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>YouTube</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅ (uses YT playlist nav)</td>
+</tr>
+<tr>
+<td>Spotify</td>
+<td>❌</td>
+<td>❌ (embed limitation)</td>
+<td>⚠️ advances ECP queue, not Spotify playlist</td>
+</tr>
+</tbody>
+</table>
+<p>Controls affected by these limitations show amber or orange styling with a tooltip explaining the restriction.</p>
+<hr />
+<h2>Soundboard</h2>
+<p>The soundboard is <strong>shared with the Announce page</strong> — sounds loaded here appear there too, and vice versa.</p>
+<h3>Adding sounds</h3>
+<p>Use the file picker to load audio files. Same format support as the music queue.</p>
+<h3>Controls</h3>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Soundboard volume</strong></td>
+<td>Master volume for all soundboard clips. Synced with the Announce page slider.</td>
+</tr>
+<tr>
+<td><strong>⭐ (Star button)</strong></td>
+<td>Stars the sound. Starred sounds appear in the <strong>Starred Sounds</strong> section at the bottom of the Music panel on the Control Panel for instant access during a show.</td>
+</tr>
+<tr>
+<td><strong>✕ (Delete button)</strong></td>
+<td>Removes the sound from the soundboard.</td>
+</tr>
+</tbody>
+</table>
+<p>Click any sound button to play it. Sound routes to the selected output device at soundboard volume × master volume.</p>
+</section>
+
+<section id="control-panel" class="page-section">
+  <div class="section-header">Control Panel</div>
+  <h1>Control Panel Page</h1>
+<p>The Control Panel is the primary operating screen during a show. It provides a dense, no-scroll overview of all active systems in one place: branding, session management, intercom, clock, music mini-controls, and visuals mini-controls.</p>
+<h2>Layout</h2>
+<p>The page is divided into two rows.</p>
+<h3>Top row (fixed height)</h3>
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Logo &amp; Banners</td>
+<td>ECP branding, MagmaLabs link, Ko-fi link</td>
+</tr>
+<tr>
+<td>Session / Intercom</td>
+<td>Preset management and intercom controls</td>
+</tr>
+<tr>
+<td>Clock</td>
+<td>Stopwatch / Timer / Clock widget</td>
+</tr>
+</tbody>
+</table>
+<h3>Bottom row (fills remaining height)</h3>
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Music</td>
+<td>Now-playing, playback controls, starred sounds</td>
+</tr>
+<tr>
+<td>Visuals</td>
+<td>Current media, mirror thumbnail, slide notes</td>
+</tr>
+<tr>
+<td>Blank</td>
+<td>Master volume, session notes, status</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Logo &amp; Banners</h2>
+<p>Click the <strong>Event Control Panel</strong> banner to reload the app. Links to <a href="https://magmalabs.dev/">MagmaLabs</a> and <a href="https://ko-fi.com/magmalabs">Ko-fi</a> open in new tabs.</p>
+<p>This panel is always displayed in dark mode regardless of the active theme — its colour never changes.</p>
+<p>A small <strong>version tag</strong> appears below the byline, formatted as <code>vYY.MM.N</code> where <code>YY</code> is the two-digit year, <code>MM</code> is the month, and <code>N</code> is the sequential commit number within that month (e.g. <code>v26.6.3</code> = third deployment in June 2026). The version is fetched automatically from the GitHub API on load and cached for the browser session; if the API is unreachable it shows <code>vYY.MM.?</code>.</p>
+<hr />
+<h2>Session</h2>
+<p>Presets store the complete app state: music queue, soundboard, media queue, all settings, and notes. They are saved as <code>.ecp</code> files (JSON).</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Loaded preset</strong></td>
+<td>Dropdown of all currently imported presets. Select one to apply it immediately.</td>
+</tr>
+<tr>
+<td><strong>Export preset</strong></td>
+<td>Saves the active preset (or the current session if none is loaded) to a <code>.ecp</code> file. All audio and image data is embedded as base64 data URIs so the file is self-contained.</td>
+</tr>
+<tr>
+<td><strong>Export all</strong></td>
+<td>Exports all loaded presets as a single <code>.zip</code> archive.</td>
+</tr>
+<tr>
+<td><strong>Import preset(s)</strong></td>
+<td>Load one or more <code>.ecp</code> or <code>.json</code> files. Multiple files can be selected at once. The first imported preset is applied immediately; subsequent ones are added to the dropdown for later selection.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>File size warning:</strong> Exporting a session with many large audio or image files can produce very large <code>.ecp</code> files since all media is embedded. For live events, consider loading files fresh each session rather than serialising large assets.</p>
+</blockquote>
+<hr />
+<h2>Intercom</h2>
+<p>A condensed version of the intercom controls from the <a href="announce.md">Announce page</a>. All settings are <strong>bidirectionally synced</strong> — changes here are immediately reflected on the Announce page and vice versa.</p>
+<p>See <a href="announce.md#intercom">Announce → Intercom</a> for full documentation of each control.</p>
+<hr />
+<h2>Clock / Stopwatch / Timer</h2>
+<p>Same widget as the Announce page, fully synced. Clicking tabs or operating controls on either page updates both simultaneously.</p>
+<p>See <a href="announce.md#clock--stopwatch--timer">Announce → Clock / Stopwatch / Timer</a> for full documentation.</p>
+<hr />
+<h2>Music (mini panel)</h2>
+<p>A compact version of the Audio page music controls for use during a show without switching pages.</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Now playing</strong></td>
+<td>Title of the currently playing track.</td>
+</tr>
+<tr>
+<td><strong>Progression</strong></td>
+<td>Current position / total duration (<code>0:00 / 3:45</code>).</td>
+</tr>
+<tr>
+<td><strong>Autoplay</strong></td>
+<td>Start playback.</td>
+</tr>
+<tr>
+<td><strong>Next / Previous</strong></td>
+<td>Navigate the queue.</td>
+</tr>
+<tr>
+<td><strong>Pause</strong></td>
+<td>Pause playback.</td>
+</tr>
+<tr>
+<td><strong>Vol</strong></td>
+<td>Music volume slider. Synced with the Audio page.</td>
+</tr>
+<tr>
+<td><strong>Play on finish</strong></td>
+<td>When unchecked, stop after each track. Synced with Audio page.</td>
+</tr>
+<tr>
+<td><strong>Crossfade</strong></td>
+<td>Enable crossfade transitions. Synced with Audio page.</td>
+</tr>
+</tbody>
+</table>
+<h3>Starred Sounds</h3>
+<p>If any soundboard sounds are starred (via the ⭐ button in the Audio or Announce pages), they appear here as compact play buttons for quick one-click access without switching pages.</p>
+<hr />
+<h2>Visuals (mini panel)</h2>
+<p>A compact view of the current visual media for use during a show.</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Current media</strong></td>
+<td>Name of the currently displayed item.</td>
+</tr>
+<tr>
+<td><strong>Mirror thumbnail</strong></td>
+<td>A live miniature preview of what the Display Window is showing. Displays the image or video name for non-image types.</td>
+</tr>
+<tr>
+<td><strong>Previous / Next</strong></td>
+<td>Navigate the media queue.</td>
+</tr>
+<tr>
+<td><strong>Freeze</strong></td>
+<td>Locks the Display Window to the current content. Any navigation (Next, Previous, clicking items) updates the mirror and queue locally, but nothing is sent to the Display Window until Freeze is toggled off. On release, the most recent item is sent automatically. Button turns amber and relabels <strong>Unfreeze</strong> while active.</td>
+</tr>
+<tr>
+<td><strong>Hide</strong></td>
+<td>Blacks out the Display Window with a full-screen overlay. New content continues to load behind the overlay so it is ready the instant Hide is released. Button turns dark and relabels <strong>Show</strong> while active. If the Display Window is reopened while hidden, the blackout is restored automatically.</td>
+</tr>
+<tr>
+<td><strong>Fade</strong></td>
+<td>Enable fade transitions. Synced with Visuals page.</td>
+</tr>
+<tr>
+<td><strong>Notes</strong></td>
+<td>Shows the per-item notes for the currently selected item. Editable and synced with the Visuals page.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Blank panel (right)</h2>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Status</strong></td>
+<td>Shows a live summary: music play state and queue sizes. Also displays export/import progress messages.</td>
+</tr>
+<tr>
+<td><strong>Master volume</strong></td>
+<td>Global volume multiplier applied to music and soundboard. Does not affect intercom or system audio.</td>
+</tr>
+<tr>
+<td><strong>Session notes</strong></td>
+<td>Free-text notepad for the operator. Saved with <code>.ecp</code> exports.</td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<section id="visuals" class="page-section">
+  <div class="section-header">Visuals</div>
+  <h1>Visuals Page</h1>
+<p>The Visuals page manages everything shown on the audience display: images, videos, PDFs, PowerPoint slides, and web embeds. It includes a full-featured presenter view with a mirror display, slide notes, and preview cards for adjacent items.</p>
+<h2>Layout</h2>
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Left</td>
+<td>Media queue, playback controls, file/URL input</td>
+</tr>
+<tr>
+<td>Right</td>
+<td>Presenter view — mirror display, preview cards, presenter notes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Display Window</h2>
+<p>Click <strong>Open Display Window</strong> to open a separate browser window (<code>media.html</code>) that shows the currently selected media full-screen. Position this window on a projector or secondary display.</p>
+<ul>
+<li>The Display Window remembers its position between sessions.</li>
+<li>If closed, ECP reopens it automatically the next time you show a media item.</li>
+<li>The Display Window operates independently — it does not require ECP to be visible.</li>
+</ul>
+<h3>Freeze and Hide</h3>
+<p>Two toggle buttons sit alongside <strong>Open Display Window</strong> (and are also available in the Visuals mini-panel on the Control Panel):</p>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>Active state</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Freeze</strong></td>
+<td>Amber — labelled <strong>Unfreeze</strong></td>
+<td>Locks the Display Window to whatever is currently shown. Subsequent navigation updates the local mirror and queue, but nothing is sent to the Display Window. On release, the most recently selected item is sent immediately.</td>
+</tr>
+<tr>
+<td><strong>Hide</strong></td>
+<td>Near-black — labelled <strong>Show</strong></td>
+<td>Covers the Display Window with a solid black overlay. New content continues loading behind it. Releasing Hide reveals the latest loaded content instantly. If the Display Window is closed and reopened while Hide is active, the blackout is automatically restored.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Tip:</strong> Use Freeze to hold a slide while preparing the next cue without the audience seeing you navigate. Use Hide for a full blackout between segments.</p>
+</blockquote>
+<hr />
+<h2>Adding media</h2>
+<h3>Local files</h3>
+<p>Use the file picker or drag files onto it. Supported formats:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Formats</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Images</td>
+<td>JPEG, PNG, GIF, WebP, BMP, SVG, and any browser-renderable image</td>
+</tr>
+<tr>
+<td>Video</td>
+<td>MP4, WebM, MOV, and any browser-playable video format</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>Converted to individual page images on import using PDF.js</td>
+</tr>
+<tr>
+<td>PowerPoint</td>
+<td><code>.pptx</code> files are rendered to slide images on import</td>
+</tr>
+</tbody>
+</table>
+<p>PDF and PPTX conversion happens entirely in the browser — no server is required. Each page/slide becomes a separate queue item.</p>
+<h3>URLs</h3>
+<p>Paste a link into the URL input and click <strong>Add</strong> (or press Enter).</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Behaviour</th>
+<th>Warning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>YouTube video</td>
+<td>Embedded via YouTube's iframe player</td>
+<td>⚠️ Amber — mirror not in sync; autoplay may be blocked</td>
+</tr>
+<tr>
+<td>Google Drive file</td>
+<td>Embedded via Drive preview iframe</td>
+<td>⚠️ Amber — file must be publicly shared</td>
+</tr>
+<tr>
+<td>Google Slides</td>
+<td>Embedded via Slides embed URL</td>
+<td>🔴 Red — must be published to the web; slide timing and navigation are controlled by Google, not ECP</td>
+</tr>
+<tr>
+<td>Direct image URL (<code>.jpg</code>, <code>.png</code>, <code>.gif</code>, <code>.webp</code>, <code>.svg</code>, <code>.avif</code>, <code>.tiff</code>)</td>
+<td>Loaded as a normal image item</td>
+<td>⚠️ Amber — displayed from external URL; will break if source goes offline</td>
+</tr>
+<tr>
+<td>Remote PDF (<code>.pdf</code>)</td>
+<td>Fetched and converted to pages</td>
+<td>⚠️ Fetch may fail if the server blocks cross-origin requests</td>
+</tr>
+<tr>
+<td>Remote PPTX (<code>.pptx</code>)</td>
+<td>Fetched and rendered to slides</td>
+<td>⚠️ Fetch may fail if the server blocks cross-origin requests</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Mirror sync warning:</strong> YouTube, Google Drive, and Google Slides items render inside iframes. ECP cannot control or synchronise the mirror display for these — the mirror shows the iframe content but the Display Window must be controlled manually. A red warning banner appears on the Presenter mirror when an embed is active.</p>
+</blockquote>
+<hr />
+<h2>Playback controls</h2>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Autoplay</strong></td>
+<td>Starts automatic sequential playback through the queue.</td>
+</tr>
+<tr>
+<td><strong>Pause</strong></td>
+<td>Stops automatic advance. The current item remains on screen.</td>
+</tr>
+<tr>
+<td><strong>Previous</strong></td>
+<td>Shows the previous non-skipped item.</td>
+</tr>
+<tr>
+<td><strong>Next</strong></td>
+<td>Advances to the next non-skipped item.</td>
+</tr>
+<tr>
+<td><strong>Loop mode</strong></td>
+<td><strong>Off</strong> — stop at end of queue. <strong>Loop single</strong> — repeat current item indefinitely. <strong>Loop all</strong> — loop the entire queue.</td>
+</tr>
+<tr>
+<td><strong>Transition (s)</strong></td>
+<td>How long each image or slide is shown before ECP automatically advances. Does not apply to video or embed items (those advance on video end, or not at all for embeds).</td>
+</tr>
+<tr>
+<td><strong>Fade transition</strong></td>
+<td>Fades the mirror display and Display Window between items.</td>
+</tr>
+<tr>
+<td><strong>Mute video audio</strong></td>
+<td>Mutes the audio track on video items when sent to the Display Window.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Queue items</h2>
+<p>Each item shows its name, type badge, and action row. Click the item to display it immediately.</p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Skip checkbox</strong></td>
+<td>Excludes the item from autoplay and navigation. Item remains visible but dimmed.</td>
+</tr>
+<tr>
+<td><strong>▶ Queue</strong></td>
+<td>Queues this item to show immediately after the current item finishes, overriding sequential advance for one step. Click again to dequeue.</td>
+</tr>
+<tr>
+<td><strong>✋ (Breakpoint)</strong></td>
+<td>Marks this item as a stop point. <strong>Autoplay halts before a breakpoint item.</strong> Manual navigation (click, Next, Previous, preview cards) shows a confirmation dialog before proceeding. The item is highlighted with a red left border.</td>
+</tr>
+<tr>
+<td><strong>↑ / ↓</strong></td>
+<td>Reorders the item in the queue.</td>
+</tr>
+<tr>
+<td><strong>🗑 (Delete)</strong></td>
+<td>Removes the item from the queue.</td>
+</tr>
+</tbody>
+</table>
+<h3>Source badges</h3>
+<table>
+<thead>
+<tr>
+<th>Badge</th>
+<th>Colour</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>YouTube</td>
+<td>Red</td>
+<td>YouTube embed</td>
+</tr>
+<tr>
+<td>Google Drive</td>
+<td>Blue</td>
+<td>Google Drive iframe</td>
+</tr>
+<tr>
+<td>Google Slides</td>
+<td>Blue</td>
+<td>Google Slides embed</td>
+</tr>
+<tr>
+<td>Web Image</td>
+<td>Blue</td>
+<td>External image URL</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Per-item notes</h2>
+<p>Select any item to enable its notes field in the <strong>Selected slide notes</strong> textarea. Notes are free text, saved per item, and included in <code>.ecp</code> exports. They are also mirrored to the Control Panel's notes field.</p>
+<hr />
+<h2>Presenter panel</h2>
+<h3>Mirror Display</h3>
+<p>Shows a live thumbnail of the currently displayed item:
+- <strong>Images</strong>: rendered directly.
+- <strong>Video</strong>: shows the video name (a full video preview is not shown to avoid double-playback).
+- <strong>Web embeds</strong>: shows the embed iframe. A red banner appears with a warning that the mirror is not in sync with the Display Window.</p>
+<h3>Preview cards</h3>
+<p>Two buttons below the mirror show thumbnails of the <strong>Previous</strong> and <strong>Next</strong> items in the queue relative to what is currently shown. Click either card to navigate to that item (breakpoint confirmation applies).</p>
+<h3>Presenter notes</h3>
+<p>A separate free-text textarea independent of per-item notes. Use it for speaker cues, run-of-show notes, or any other information the operator needs during the presentation. Not saved in <code>.ecp</code> exports.</p>
+</section>
+
+<section id="settings" class="page-section">
+  <div class="section-header">Settings</div>
+  <h1>Settings Page</h1>
+<p>The Settings page controls visual appearance and links to project resources. All appearance settings are persisted in <code>localStorage</code> and restored on every page load.</p>
+<hr />
+<h2>GitHub Repository</h2>
+<p>A banner at the top of the page links to the <a href="https://github.com/MagmaSpeedCubes/event-control-panel">Event Control Panel GitHub repository</a>. Click it to open the repo in a new tab.</p>
+<hr />
+<h2>Appearance</h2>
+<h3>Light Mode</h3>
+<p>Switches between the default dark theme and a light theme.</p>
+<ul>
+<li><strong>Off (default)</strong>: Dark background (<code>#101010</code>), light text. Suited for dim environments such as event backstage areas.</li>
+<li><strong>On</strong>: Light background (<code>#f0f2f5</code>), dark text. Suited for well-lit environments.</li>
+</ul>
+<p>The logo and branding panel on the Control Panel always renders in dark mode regardless of this setting.</p>
+<hr />
+<h3>High Contrast</h3>
+<p>Inverts button colours relative to the background, making interactive controls more visually distinct from panels.</p>
+<table>
+<thead>
+<tr>
+<th>Theme + High Contrast</th>
+<th>Button background</th>
+<th>Button text</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dark + HC</td>
+<td>Light grey (<code>#d8d8dc</code>)</td>
+<td>Dark (<code>#111</code>)</td>
+</tr>
+<tr>
+<td>Light + HC</td>
+<td>Dark charcoal (<code>#1e1e22</code>)</td>
+<td>Light (<code>#eee</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Active buttons (green/red for play/pause/announcement states) are exempt — their indicator colours are preserved.</p>
+<p>The logo and branding panel is exempt from High Contrast.</p>
+<hr />
+<h3>Icon Navigation</h3>
+<p>When enabled, all <strong>action buttons</strong> (play, pause, next, previous, shuffle, etc.) replace their text labels with Font Awesome SVG icons from the <a href="https://fontawesome.com/search?ic=free-collection">free collection</a>.</p>
+<ul>
+<li>Icons respond to all theme changes: light/dark, high contrast, active states.</li>
+<li>The navigation tabs (<strong>Announce</strong>, <strong>Audio</strong>, etc.) are <strong>not</strong> affected — they always show text.</li>
+<li>Utility buttons (up/down/delete in queues, soundboard star/delete, breakpoint, queue-next) always show icons regardless of this setting.</li>
+</ul>
+<hr />
+<h3>Realistic Buttons</h3>
+<p>Expands all action buttons into a taller aviation-panel style with LED bar indicators above the label.</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>LED colour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Idle / inactive</td>
+<td>Dark green (unlit)</td>
+</tr>
+<tr>
+<td>Playing / active / running</td>
+<td>Bright green with glow</td>
+</tr>
+<tr>
+<td>Paused</td>
+<td>Amber with glow</td>
+</tr>
+</tbody>
+</table>
+<p>Button body colour is always dark charcoal (<code>#25272b</code>) regardless of Light Mode or High Contrast — the LEDs communicate state instead of background colour changes.</p>
+<p>Compatible with Icon Navigation mode: the LED bars appear above the icon.</p>
+<hr />
+<h2>Feedback</h2>
+<p>A Fillout embed form at the bottom of the page is available for submitting feedback, bug reports, or feature requests directly within ECP.</p>
+</section>
+
+
+</body>
+</html>

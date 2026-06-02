@@ -30,6 +30,8 @@ Click the **Event Control Panel** banner to reload the app. Links to [MagmaLabs]
 
 This panel is always displayed in dark mode regardless of the active theme — its colour never changes.
 
+A small **version tag** appears below the byline, formatted as `vYY.MM.N` where `YY` is the two-digit year, `MM` is the month, and `N` is the sequential commit number within that month (e.g. `v26.6.3` = third deployment in June 2026). The version is fetched automatically from the GitHub API on load and cached for the browser session; if the API is unreachable it shows `vYY.MM.?`.
+
 ---
 
 ## Session
@@ -93,6 +95,8 @@ A compact view of the current visual media for use during a show.
 | **Current media** | Name of the currently displayed item. |
 | **Mirror thumbnail** | A live miniature preview of what the Display Window is showing. Displays the image or video name for non-image types. |
 | **Previous / Next** | Navigate the media queue. |
+| **Freeze** | Locks the Display Window to the current content. Any navigation (Next, Previous, clicking items) updates the mirror and queue locally, but nothing is sent to the Display Window until Freeze is toggled off. On release, the most recent item is sent automatically. Button turns amber and relabels **Unfreeze** while active. |
+| **Hide** | Blacks out the Display Window with a full-screen overlay. New content continues to load behind the overlay so it is ready the instant Hide is released. Button turns dark and relabels **Show** while active. If the Display Window is reopened while hidden, the blackout is restored automatically. |
 | **Fade** | Enable fade transitions. Synced with Visuals page. |
 | **Notes** | Shows the per-item notes for the currently selected item. Editable and synced with the Visuals page. |
 

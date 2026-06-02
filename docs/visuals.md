@@ -19,6 +19,17 @@ Click **Open Display Window** to open a separate browser window (`media.html`) t
 - If closed, ECP reopens it automatically the next time you show a media item.
 - The Display Window operates independently — it does not require ECP to be visible.
 
+### Freeze and Hide
+
+Two toggle buttons sit alongside **Open Display Window** (and are also available in the Visuals mini-panel on the Control Panel):
+
+| Button | Active state | Behaviour |
+|--------|-------------|-----------|
+| **Freeze** | Amber — labelled **Unfreeze** | Locks the Display Window to whatever is currently shown. Subsequent navigation updates the local mirror and queue, but nothing is sent to the Display Window. On release, the most recently selected item is sent immediately. |
+| **Hide** | Near-black — labelled **Show** | Covers the Display Window with a solid black overlay. New content continues loading behind it. Releasing Hide reveals the latest loaded content instantly. If the Display Window is closed and reopened while Hide is active, the blackout is automatically restored. |
+
+> **Tip:** Use Freeze to hold a slide while preparing the next cue without the audience seeing you navigate. Use Hide for a full blackout between segments.
+
 ---
 
 ## Adding media
