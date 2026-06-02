@@ -91,6 +91,7 @@ body{margin:0;background:#101010;color:#eee}
 /* ===== BRAND STACK ===== */
 .brand-stack{display:flex;flex-direction:column;gap:8px;width:100%}
 .brand-links{display:flex;flex-wrap:nowrap;gap:8px;align-items:center;width:100%}
+.version-tag{font-family:'Space Mono',monospace;font-size:.62rem;color:#3a3a3a;text-align:center;letter-spacing:.08em;padding-top:2px;user-select:text}
 .app-banner-button,.by-magmalabs-banner,.kofi-button{display:flex;align-items:center;justify-content:center;border:1px solid #2f2f2f;border-radius:14px;background:#111;overflow:hidden;transition:background .2s,border-color .2s,transform .2s}
 .app-banner-button{height:62px;padding:10px;cursor:pointer;width:100%}
 .by-magmalabs-banner{height:52px;padding:10px;text-decoration:none;flex:1 1 auto;min-width:0}
@@ -676,3 +677,14 @@ body:not(.realistic-mode) button.action-button.btn-running:hover{background:#3b9
 body.icons-mode button.action-button.btn-running::before{background:#011 !important}
 body.high-contrast.icons-mode button.action-button.btn-running::before{background:#011 !important}
 body.light-mode.high-contrast.icons-mode button.action-button.btn-running::before{background:#011 !important}
+
+/* ===== FREEZE / HIDE DISPLAY BUTTONS ===== */
+button.action-button.active-freeze{background:#c47800;color:#fff;border-color:#e89a00}
+button.action-button.active-freeze:hover{background:#d98a00;border-color:#ffb300;color:#fff}
+button.action-button.active-hide{background:#111;color:#888;border-color:#333}
+button.action-button.active-hide:hover{background:#1a1a1a;border-color:#555;color:#bbb}
+body.icons-mode button.action-button.active-freeze::before{background:#fff}
+body.icons-mode button.action-button.active-hide::before{background:#666}
+/* Icons mode mask-image for freeze/hide buttons */
+body.icons-mode #freezeDisplay::before,body.icons-mode #cpFreezeDisplay::before{-webkit-mask-image:url(icons/lock.svg);mask-image:url(icons/lock.svg)}
+body.icons-mode #hideDisplay::before,body.icons-mode #cpHideDisplay::before{-webkit-mask-image:url(icons/eye-slash.svg);mask-image:url(icons/eye-slash.svg)}

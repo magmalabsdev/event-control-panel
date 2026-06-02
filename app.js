@@ -25,6 +25,9 @@ let soundboardSounds = [];
 let media = [];
 let currentMediaIndex = -1;
 let displayWindow = null;
+let displayFrozen = false;
+let displayHidden = false;
+let frozenPendingItem = null;
 let mediaTimer = null;
 let mediaPlaying = false;
 let mediaLooping = false;
@@ -2698,6 +2701,11 @@ function findNextPlayableMediaIndex(startIndex, direction){
 function openDisplayWindow(){
   if (displayWindow && !displayWindow.closed) { displayWindow.focus(); return; }
   displayWindow = window.open('media.html','EventDisplay','width=1280,height=720');
+  if (displayHidden) {
+    setTimeout(() => {
+      if (displayWindow && !displayWindow.closed) displayWindow.postMessage({type:'displayHide'},'*');
+    }, 600);
+  }
 }
 
 openDisplay.addEventListener('click', openDisplayWindow);
@@ -2752,10 +2760,51 @@ function showMediaAt(i, autoplay = true){
 }
 
 function sendMediaToDisplay(item, autoplay = true, transition = false){
+  if (displayFrozen) { frozenPendingItem = { item, autoplay, transition }; return; }
   if (!displayWindow || displayWindow.closed) openDisplayWindow();
   const msg = {type:'show', item:{name:item.name,url:item.url,type:item.type, muted: (mediaMuteAudio ? !!mediaMuteAudio.checked : true), autoplay, embedUrl: item.embedUrl || null}, transition};
-  // wait for popup to be ready
-  setTimeout(()=> displayWindow.postMessage(msg,'*'),200);
+  setTimeout(()=> { if (displayWindow && !displayWindow.closed) displayWindow.postMessage(msg,'*'); },200);
+}
+
+function updateDisplayControlButtons() {
+  const frozen = displayFrozen;
+  const hidden = displayHidden;
+  ['freezeDisplay','cpFreezeDisplay'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.classList.toggle('active-freeze', frozen);
+    btn.classList.toggle('inactive', !frozen);
+    if (!document.body.classList.contains('icons-mode'))
+      btn.textContent = frozen ? 'Unfreeze' : 'Freeze';
+  });
+  ['hideDisplay','cpHideDisplay'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.classList.toggle('active-hide', hidden);
+    btn.classList.toggle('inactive', !hidden);
+    if (!document.body.classList.contains('icons-mode'))
+      btn.textContent = hidden ? 'Show' : 'Hide';
+  });
+}
+
+function toggleDisplayFreeze() {
+  displayFrozen = !displayFrozen;
+  updateDisplayControlButtons();
+  if (!displayFrozen && frozenPendingItem) {
+    const { item, autoplay, transition } = frozenPendingItem;
+    frozenPendingItem = null;
+    sendMediaToDisplay(item, autoplay, transition);
+  } else if (!displayFrozen) {
+    frozenPendingItem = null;
+  }
+}
+
+function toggleDisplayHide() {
+  displayHidden = !displayHidden;
+  updateDisplayControlButtons();
+  if (!displayWindow || displayWindow.closed) openDisplayWindow();
+  const msg = { type: displayHidden ? 'displayHide' : 'displayUnhide' };
+  setTimeout(() => { if (displayWindow && !displayWindow.closed) displayWindow.postMessage(msg,'*'); }, 250);
 }
 
 function updateMediaUI(){
@@ -3986,6 +4035,44 @@ document.getElementById('clearAnnouncementBtn')?.addEventListener('click', clear
     if (e.key === 'Enter') { const q = e.target.value.trim(); if (q) search(q); }
   });
 })();
+
+// ===== VERSION TAG =====
+(function initVersionTag() {
+  const el = document.querySelector('.version-tag');
+  if (!el) return;
+
+  const now   = new Date();
+  const year  = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const yy    = String(year).slice(-2);
+
+  // Cache per month so we don't hammer the API on every reload
+  const cacheKey = `ecp-version-${yy}${String(month).padStart(2, '0')}`;
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) { el.textContent = cached; return; }
+
+  // Show partial version while the fetch is in flight
+  el.textContent = `v${yy}.${month}.…`;
+
+  const since = `${year}-${String(month).padStart(2, '0')}-01T00:00:00Z`;
+  fetch(
+    `https://api.github.com/repos/MagmaSpeedCubes/event-control-panel/commits?since=${since}&per_page=100`,
+    { headers: { Accept: 'application/vnd.github+json' } }
+  )
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(commits => {
+      const v = `v${yy}.${month}.${commits.length}`;
+      el.textContent = v;
+      sessionStorage.setItem(cacheKey, v);
+    })
+    .catch(() => { el.textContent = `v${yy}.${month}.?`; });
+})();
+
+// ===== DISPLAY FREEZE / HIDE =====
+document.getElementById('freezeDisplay')?.addEventListener('click', toggleDisplayFreeze);
+document.getElementById('cpFreezeDisplay')?.addEventListener('click', toggleDisplayFreeze);
+document.getElementById('hideDisplay')?.addEventListener('click', toggleDisplayHide);
+document.getElementById('cpHideDisplay')?.addEventListener('click', toggleDisplayHide);
 
 // ===== GLOBAL BUTTON CLICK FLASH =====
 document.addEventListener('click', e => {
