@@ -109,8 +109,17 @@
             <input id="announceSoundboardFiles" type="file" accept="audio/*" multiple aria-describedby="announceSbFileTypes">
             <div id="announceSbFileTypes" class="file-type-list">Supported: MP3, WAV, OGG, M4A, AAC, FLAC, and other browser-playable audio files.</div>
           </div>
-          <div class="row">
-            <label>Soundboard volume: <input id="announceSoundboardVolume" type="range" min="0" max="1" step="0.01" value="1"></label>
+          <div class="sb-vol-row">
+            <span class="sb-vol-label">Soundboard vol:</span>
+            <div class="sb-vol-slider-wrap">
+              <input id="announceSoundboardVolume" type="range" min="0" max="2" step="0.01" value="1" list="anSbVolMarks">
+              <datalist id="anSbVolMarks"><option value="1"></datalist>
+            </div>
+            <input id="announceSoundboardVolumeInput" type="number" min="0" max="200" step="1" value="100" class="sb-vol-input">
+            <span class="sb-vol-pct">%</span>
+          </div>
+          <div class="row" style="margin-top:6px;margin-bottom:4px;font-size:.85rem">
+            <label><input id="announceStableVolume" type="checkbox"> Stable volume</label>
           </div>
           <div id="announceSoundboardGrid" class="soundboard-grid"></div>
         </section>

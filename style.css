@@ -688,3 +688,31 @@ body.icons-mode button.action-button.active-hide::before{background:#666}
 /* Icons mode mask-image for freeze/hide buttons */
 body.icons-mode #freezeDisplay::before,body.icons-mode #cpFreezeDisplay::before{-webkit-mask-image:url(icons/lock.svg);mask-image:url(icons/lock.svg)}
 body.icons-mode #hideDisplay::before,body.icons-mode #cpHideDisplay::before{-webkit-mask-image:url(icons/eye-slash.svg);mask-image:url(icons/eye-slash.svg)}
+
+/* ===== SOUNDBOARD VOLUME — slider + number input ===== */
+.sb-vol-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:nowrap}
+.sb-vol-label{font-size:.85rem;white-space:nowrap;flex-shrink:0}
+.sb-vol-slider-wrap{flex:1 1 80px;min-width:60px;position:relative;padding-bottom:15px}
+.sb-vol-slider-wrap input[type=range]{width:100%;margin:0}
+.sb-vol-slider-wrap::after{content:'100%';position:absolute;left:50%;bottom:1px;transform:translateX(-50%);font-size:.6rem;color:#484848;font-family:'Space Mono',monospace;pointer-events:none;white-space:nowrap}
+.sb-vol-input{width:56px!important;margin:0!important;padding:4px 6px!important;text-align:center;font-family:'Space Mono',monospace;font-size:.8rem;flex-shrink:0}
+.sb-vol-pct{font-size:.8rem;color:#888;flex-shrink:0}
+body.light-mode .sb-vol-slider-wrap::after{color:#bbb}
+
+/* ===== SOUNDBOARD BUTTON — filename + dB label + playing state ===== */
+.soundboard-button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.sb-filename{width:100%;text-align:center;overflow-wrap:break-word;word-break:break-word;hyphens:manual;line-height:1.3}
+.sb-norm-label{font-size:.62rem;opacity:.45;font-family:'Space Mono',monospace;text-align:center;letter-spacing:.02em;min-height:.85em}
+/* Playing state */
+@keyframes sb-play-pulse{0%,100%{opacity:1}50%{opacity:.75}}
+.soundboard-item.sb-playing .soundboard-button,
+button.sb-cp-btn.sb-playing{
+  background:#2a8 !important;
+  border-color:#2f9 !important;
+  color:#011 !important;
+  animation:sb-play-pulse 1.1s ease-in-out infinite
+}
+body.light-mode .soundboard-item.sb-playing .soundboard-button,
+body.light-mode button.sb-cp-btn.sb-playing{background:#2a8 !important;border-color:#2f9 !important;color:#011 !important}
+.sb-norm-label.sb-norm-pos{color:#2d9;opacity:.85}
+.sb-norm-label.sb-norm-neg{color:#e55;opacity:.85}

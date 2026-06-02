@@ -20,7 +20,158 @@ musicAudio.preload = 'auto';
 let musicPlaying = false;
 let musicLoopMode = 'off';
 
+// Web Audio API gain node for music (enables gain > 100% on local files)
+let musicAudioContext = null;
+let musicGainNode = null;
+
 let soundboardSounds = [];
+
+// ── Soundboard Web Audio API (for gain > 1 and stable volume analysis) ──
+let sbAudioContext = null;
+const sbRawBuffers = new Map();   // url → ArrayBuffer cache
+const sbPlayingCount = new Map(); // url → number of currently playing instances
+let stableVolumeEnabled = false;
+
+// Insert soft hyphens (U+00AD) every N chars in long words so the browser
+// can break with a visible hyphen rather than overflowing.
+function addSoftHyphens(text, chunkSize = 11) {
+  return text.replace(/\S+/g, word => {
+    if (word.length <= chunkSize) return word;
+    let out = '';
+    for (let i = 0; i < word.length; i++) {
+      out += word[i];
+      if ((i + 1) % chunkSize === 0 && i < word.length - 1) out += '­';
+    }
+    return out;
+  });
+}
+
+function normLabelContent(sound) {
+  if (!stableVolumeEnabled) return { text: '0.0 dB', cls: '' };
+  if (sound.peakAmplitude === undefined) return { text: '…', cls: '' };
+  const gain = getStableGain(sound);
+  const db = Math.abs(gain - 1) < 0.001 ? 0 : 20 * Math.log10(gain);
+  if (Math.abs(db) < 0.05) return { text: '0.0 dB', cls: '' };
+  const sign = db > 0 ? '+' : '';
+  return { text: sign + db.toFixed(1) + ' dB', cls: db > 0 ? 'sb-norm-pos' : 'sb-norm-neg' };
+}
+
+function applyNormLabel(el, sound) {
+  const { text, cls } = normLabelContent(sound);
+  el.textContent = text;
+  el.className = 'sb-norm-label' + (cls ? ' ' + cls : '');
+}
+
+function updateAllSbNormLabels() {
+  document.querySelectorAll('.soundboard-item').forEach(el => {
+    const sound = soundboardSounds.find(s => s.url === el.dataset.sbUrl);
+    if (sound) { const n = el.querySelector('.sb-norm-label'); if (n) applyNormLabel(n, sound); }
+  });
+}
+
+function updateSbPlayingState(url, delta) {
+  const count = Math.max(0, (sbPlayingCount.get(url) || 0) + delta);
+  sbPlayingCount.set(url, count);
+  const on = count > 0;
+  document.querySelectorAll('.soundboard-item').forEach(el => {
+    if (el.dataset.sbUrl === url) el.classList.toggle('sb-playing', on);
+  });
+  document.querySelectorAll('.sb-cp-btn').forEach(btn => {
+    if (btn.dataset.sbUrl === url) btn.classList.toggle('sb-playing', on);
+  });
+}
+
+function getSbAudioContext() {
+  if (!sbAudioContext || sbAudioContext.state === 'closed') {
+    sbAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (sbAudioContext.state === 'suspended') sbAudioContext.resume().catch(() => {});
+  return sbAudioContext;
+}
+
+async function fetchSbBuffer(url) {
+  if (sbRawBuffers.has(url)) return sbRawBuffers.get(url);
+  const buf = await fetch(url).then(r => r.arrayBuffer());
+  sbRawBuffers.set(url, buf);
+  return buf;
+}
+
+async function analyzeSbPeak(sound) {
+  if (sound.peakAmplitude !== undefined) return sound.peakAmplitude;
+  try {
+    const ctx = getSbAudioContext();
+    const raw = await fetchSbBuffer(sound.url);
+    const audioBuf = await ctx.decodeAudioData(raw.slice(0));
+    let peak = 0.0001;
+    for (let c = 0; c < audioBuf.numberOfChannels; c++) {
+      const ch = audioBuf.getChannelData(c);
+      for (let i = 0; i < ch.length; i++) {
+        const v = Math.abs(ch[i]);
+        if (v > peak) peak = v;
+      }
+    }
+    sound.peakAmplitude = peak;
+    // Update any rendered norm labels for this sound
+    document.querySelectorAll('.soundboard-item').forEach(el => {
+      if (el.dataset.sbUrl === sound.url) {
+        const n = el.querySelector('.sb-norm-label');
+        if (n) applyNormLabel(n, sound);
+      }
+    });
+    return peak;
+  } catch {
+    sound.peakAmplitude = 1;
+    return 1;
+  }
+}
+
+function getStableGain(sound) {
+  if (!stableVolumeEnabled) return 1;
+  if (sound.peakAmplitude === undefined) return 1;
+  const peaks = soundboardSounds
+    .map(s => s.peakAmplitude)
+    .filter(p => p !== undefined && p > 0);
+  if (peaks.length < 2) return 1;
+  // Normalize to median: reduces loud sounds AND gently raises quiet ones
+  const sorted = [...peaks].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  return Math.min(1.5, median / sound.peakAmplitude);
+}
+
+async function playSoundboardItem(sound, onEnded) {
+  const m = parseFloat(masterVolume?.value) || 1;
+  const sv = parseFloat(soundboardVolume?.value) || 1;
+  const stableGain = getStableGain(sound);
+  const totalGain = m * sv * stableGain;
+
+  updateSbPlayingState(sound.url, +1);
+  const done = () => { updateSbPlayingState(sound.url, -1); if (onEnded) onEnded(); };
+
+  if (totalGain <= 1.001) {
+    const audio = new Audio(sound.url);
+    audio.volume = Math.min(1, totalGain);
+    if (selectedOutputDeviceId && typeof audio.setSinkId === 'function') {
+      await audio.setSinkId(selectedOutputDeviceId).catch(() => {});
+    }
+    audio.onended = done;
+    audio.onerror = done;
+    audio.play().catch(done);
+  } else {
+    try {
+      const ctx = getSbAudioContext();
+      const raw = await fetchSbBuffer(sound.url);
+      const audioBuf = await ctx.decodeAudioData(raw.slice(0));
+      const source = ctx.createBufferSource();
+      source.buffer = audioBuf;
+      const gain = ctx.createGain();
+      gain.gain.value = totalGain;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      source.onended = done;
+      source.start(0);
+    } catch { done(); }
+  }
+}
 
 let media = [];
 let currentMediaIndex = -1;
@@ -94,8 +245,6 @@ const cpMediaNext = document.getElementById('cpMediaNext');
 const cpMediaNotes = document.getElementById('cpMediaNotes');
 
 // Play on finish checkboxes selectors
-const musicPlayOnFinish = document.getElementById('musicPlayOnFinish');
-const cpMusicPlayOnFinish = document.getElementById('cpMusicPlayOnFinish');
 const musicTransition = document.getElementById('musicTransition');
 const cpMusicTransition = document.getElementById('cpMusicTransition');
 const mediaTransition = document.getElementById('mediaTransition');
@@ -247,17 +396,36 @@ async function ensureDeviceAccess(){
 
 // Master / channel volume controls
 function applyVolumeSettings(){
-  const m = parseFloat(masterVolume?.value) || 1;
-  const mv = parseFloat(musicVolume?.value) || 1;
-  const sv = parseFloat(soundboardVolume?.value) || 1;
-  // effective volumes
-  try { musicAudio.volume = m * mv; } catch {}
-  try { if (ytPlayer?.setVolume) ytPlayer.setVolume(Math.round(m * mv * 100)); } catch {}
+  const m  = parseFloat(masterVolume?.value) || 1;
+  const mv = parseFloat(musicVolume?.value)  || 1;
+  const effectiveGain = m * mv;
+
+  // Set up Web Audio gain node lazily the first time gain > 1 is requested.
+  // createMediaElementSource permanently routes musicAudio through the AudioContext,
+  // so we only do this when actually needed.
+  if (effectiveGain > 1.001 && !musicGainNode) {
+    try {
+      musicAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const src = musicAudioContext.createMediaElementSource(musicAudio);
+      musicGainNode = musicAudioContext.createGain();
+      src.connect(musicGainNode);
+      musicGainNode.connect(musicAudioContext.destination);
+    } catch (e) { console.warn('Music Web Audio setup failed:', e); }
+  }
+
+  if (musicGainNode) {
+    musicGainNode.gain.value = effectiveGain;
+    try { musicAudio.volume = 1; } catch {}
+    musicAudioContext?.resume().catch(() => {});
+  } else {
+    try { musicAudio.volume = Math.min(1, effectiveGain); } catch {}
+  }
+  // YouTube capped at 100 — YT API doesn't support gain > 1
+  try { if (ytPlayer?.setVolume) ytPlayer.setVolume(Math.min(100, Math.round(effectiveGain * 100))); } catch {}
   // (soundboard volumes applied on play)
 }
 
 masterVolume.addEventListener('input', applyVolumeSettings);
-if (musicVolume) musicVolume.addEventListener('input', applyVolumeSettings);
 if (soundboardVolume) soundboardVolume.addEventListener('input', applyVolumeSettings);
 
 // ===== YOUTUBE / SPOTIFY SUPPORT =====
@@ -673,9 +841,6 @@ function onYtStateChange(event) {
       queuedMusicNext = null;
       if (idx !== -1) { playSongAt(idx); return; }
     }
-    if (musicPlayOnFinish && !musicPlayOnFinish.checked) {
-      musicPlaying = false; updateMusicUI(); updateButtonStates(); return;
-    }
     const next = findNextPlayableSongIndex(currentSongIndex);
     if (next !== -1) {
       if (songs[next].breakpoint) { musicPlaying = false; updateMusicUI(); updateButtonStates(); setStatus('⛔ Stopped at breakpoint: ' + songs[next].name); setTimeout(() => setStatus(''), 5000); return; }
@@ -734,9 +899,6 @@ function handleSpotifyTrackEnd() {
     const idx = songs.indexOf(queuedMusicNext);
     queuedMusicNext = null;
     if (idx !== -1) { playSongAt(idx); return; }
-  }
-  if (musicPlayOnFinish && !musicPlayOnFinish.checked) {
-    musicPlaying = false; updateMusicUI(); updateButtonStates(); return;
   }
   const next = findNextPlayableSongIndex(currentSongIndex);
   if (next !== -1) {
@@ -2159,6 +2321,7 @@ soundboardFiles.addEventListener('change', e=>{
     const item = {name:f.name,url, type:f.type,file:f, durationFormatted:'Loading...'};
     soundboardSounds.push(item);
     loadFileMetadata(item, renderSoundboardGrid);
+    analyzeSbPeak(item); // begin analysis in background so dB label appears quickly
   });
   renderSoundboardGrid();
 });
@@ -2175,21 +2338,22 @@ function renderMusicQueue(){
 function makeSoundboardButton(s) {
   const item = document.createElement('div');
   item.className = 'soundboard-item';
+  item.dataset.sbUrl = s.url;
 
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'soundboard-button';
-  button.textContent = s.name;
-  button.addEventListener('click', () => {
-    const sound = new Audio(s.url);
-    const m = parseFloat(masterVolume?.value) || 1;
-    const sv = parseFloat(soundboardVolume?.value) || 1;
-    sound.volume = m * sv;
-    if (selectedOutputDeviceId && typeof sound.setSinkId === 'function') {
-      sound.setSinkId(selectedOutputDeviceId).catch(() => {});
-    }
-    sound.play().catch(() => {});
-  });
+
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'sb-filename';
+  nameSpan.textContent = addSoftHyphens(s.name);
+
+  const normSpan = document.createElement('span');
+  normSpan.className = 'sb-norm-label';
+  applyNormLabel(normSpan, s);
+
+  button.append(nameSpan, normSpan);
+  button.addEventListener('click', () => { playSoundboardItem(s); });
 
   const sbActions = document.createElement('div');
   sbActions.className = 'sb-actions';
@@ -2245,18 +2409,10 @@ function renderStarredSoundsCP() {
   starred.forEach(s => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'soundboard-button';
-    btn.textContent = s.name;
-    btn.addEventListener('click', () => {
-      const sound = new Audio(s.url);
-      const m = parseFloat(masterVolume?.value) || 1;
-      const sv = parseFloat(soundboardVolume?.value) || 1;
-      sound.volume = m * sv;
-      if (selectedOutputDeviceId && typeof sound.setSinkId === 'function') {
-        sound.setSinkId(selectedOutputDeviceId).catch(() => {});
-      }
-      sound.play().catch(() => {});
-    });
+    btn.className = 'soundboard-button sb-cp-btn';
+    btn.dataset.sbUrl = s.url;
+    btn.textContent = addSoftHyphens(s.name);
+    btn.addEventListener('click', () => { playSoundboardItem(s); });
     grid.appendChild(btn);
   });
 }
@@ -2281,16 +2437,7 @@ function playIntercomSoundCue(callback) {
   if (!cueName) { if (callback) callback(); return; }
   const sound = soundboardSounds.find(s => s.name === cueName);
   if (!sound) { if (callback) callback(); return; }
-  const audio = new Audio(sound.url);
-  const m = parseFloat(masterVolume?.value) || 1;
-  const sv = parseFloat(soundboardVolume?.value) || 1;
-  audio.volume = m * sv;
-  if (selectedOutputDeviceId && typeof audio.setSinkId === 'function') {
-    audio.setSinkId(selectedOutputDeviceId).catch(() => {});
-  }
-  audio.onended = () => { if (callback) callback(); };
-  audio.onerror = () => { if (callback) callback(); };
-  audio.play().catch(() => { if (callback) callback(); });
+  playSoundboardItem(sound, callback);
 }
 
 function playSongAt(i){
@@ -2347,18 +2494,20 @@ function playSongAt(i){
         clearInterval(fadeInterval);
         
         musicAudio.src = songs[i].url;
-        musicAudio.volume = 0;
+        if (musicGainNode) musicGainNode.gain.value = 0; else try { musicAudio.volume = 0; } catch {}
         musicAudio.play().catch(() => {});
+        musicAudioContext?.resume().catch(() => {});
         
         // Fade in new song
         const targetVolume = (parseFloat(masterVolume?.value) || 1) * (parseFloat(musicVolume?.value) || 1);
         let inStep = 0;
         const fadeInInterval = setInterval(() => {
           inStep++;
-          musicAudio.volume = Math.min(targetVolume, targetVolume * (inStep / steps));
+          const v = Math.min(targetVolume, targetVolume * (inStep / steps));
+          if (musicGainNode) musicGainNode.gain.value = v; else try { musicAudio.volume = v; } catch {}
           if (inStep >= steps) {
             clearInterval(fadeInInterval);
-            musicAudio.volume = targetVolume;
+            if (musicGainNode) musicGainNode.gain.value = targetVolume; else try { musicAudio.volume = targetVolume; } catch {}
           }
         }, 300 / steps);
       }
@@ -2366,6 +2515,7 @@ function playSongAt(i){
   } else {
     musicAudio.src = songs[i].url;
     musicAudio.play().catch(() => {});
+    musicAudioContext?.resume().catch(() => {});
     applyVolumeSettings();
   }
   
@@ -2477,12 +2627,6 @@ musicAudio.addEventListener('ended', ()=>{
     if (idx !== -1) { playSongAt(idx); return; }
   }
   // Play on finish logic
-  if (musicPlayOnFinish && !musicPlayOnFinish.checked) {
-    musicPlaying = false;
-    updateMusicUI();
-    updateButtonStates();
-    return;
-  }
   const next = findNextPlayableSongIndex(currentSongIndex);
   if (next !== -1) {
     if (songs[next].breakpoint) {
@@ -2612,8 +2756,6 @@ function updateStreamControlStates() {
   // Play on finish — functional but Spotify track-end detection is approximate
   const pofState = isSp ? 'limited' : 'normal';
   const pofTip = 'Spotify track-end detection is approximate; auto-advance may not trigger reliably';
-  setControlState(musicPlayOnFinish, pofState, pofTip);
-  setControlState(cpMusicPlayOnFinish, pofState, pofTip);
 }
 
 function updateMusicUI(){
@@ -3208,13 +3350,18 @@ function fadeOutMusic(durationSec=0.5){
     try { spotifyController?.pause(); } catch {}
     return;
   }
-  const start = musicAudio.volume;
+  const gainTarget = musicGainNode ? musicGainNode.gain.value : (musicAudio.volume || 1);
   const steps = 20;
   let i=0;
   const iv = setInterval(()=>{
     i++; const t=i/steps;
-    musicAudio.volume = start*(1-t);
-    if (i>=steps){ clearInterval(iv); musicAudio.pause(); musicAudio.volume = start; }
+    if (musicGainNode) musicGainNode.gain.value = gainTarget*(1-t);
+    else try { musicAudio.volume = gainTarget*(1-t); } catch {}
+    if (i>=steps){
+      clearInterval(iv); musicAudio.pause();
+      if (musicGainNode) musicGainNode.gain.value = gainTarget;
+      else try { musicAudio.volume = gainTarget; } catch {}
+    }
   }, durationSec*1000/steps);
 }
 function fadeInMusic(durationSec=0.5){
@@ -3234,10 +3381,16 @@ function fadeInMusic(durationSec=0.5){
     return;
   }
   const target = (parseFloat(masterVolume.value)||1) * (parseFloat(musicVolume?.value)||1);
-  musicAudio.volume = 0;
+  if (musicGainNode) musicGainNode.gain.value = 0; else try { musicAudio.volume = 0; } catch {}
   musicAudio.play().catch(()=>{});
+  musicAudioContext?.resume().catch(() => {});
   const steps=20; let i=0;
-  const iv=setInterval(()=>{ i++; musicAudio.volume = target*(i/steps); if (i>=steps){ clearInterval(iv); } }, durationSec*1000/steps);
+  const iv=setInterval(()=>{
+    i++;
+    if (musicGainNode) musicGainNode.gain.value = target*(i/steps);
+    else try { musicAudio.volume = target*(i/steps); } catch {}
+    if (i>=steps){ clearInterval(iv); }
+  }, durationSec*1000/steps);
 }
 
 // set intercom volume control
@@ -3256,6 +3409,13 @@ setInterval(()=>{
   updateQueueProgress('music');
   updateQueueProgress('media');
 }, 250);
+
+// Resume music AudioContext when the tab regains focus
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && musicAudioContext?.state === 'suspended') {
+    musicAudioContext.resume().catch(() => {});
+  }
+});
 
 // Cleanup on unload
 window.addEventListener('beforeunload', ()=>{
@@ -3324,14 +3484,33 @@ if (cpMusicPlay) cpMusicPlay.addEventListener('click', () => musicPlay.click());
 if (cpMusicPause) cpMusicPause.addEventListener('click', () => musicPause.click());
 if (cpMusicPrev) cpMusicPrev.addEventListener('click', () => musicPrev.click());
 if (cpMusicNext) cpMusicNext.addEventListener('click', () => musicNext.click());
-if (cpMusicVolume) {
-  cpMusicVolume.addEventListener('input', () => {
-    if (musicVolume) musicVolume.value = cpMusicVolume.value;
-    applyVolumeSettings();
-  });
-  // Keep in sync when audio page slider changes
-  if (musicVolume) musicVolume.addEventListener('input', () => { cpMusicVolume.value = musicVolume.value; });
+function setMusicVolume(val) {
+  const clamped = Math.max(0, Math.min(2, val));
+  if (musicVolume) musicVolume.value = clamped;
+  if (cpMusicVolume) cpMusicVolume.value = clamped;
+  const pct = Math.round(clamped * 100);
+  const mvi  = document.getElementById('musicVolumeInput');
+  const cmvi = document.getElementById('cpMusicVolumeInput');
+  if (mvi) mvi.value = pct;
+  if (cmvi) cmvi.value = pct;
+  applyVolumeSettings();
 }
+
+if (musicVolume)   musicVolume.addEventListener('input',   () => setMusicVolume(parseFloat(musicVolume.value)));
+if (cpMusicVolume) cpMusicVolume.addEventListener('input', () => setMusicVolume(parseFloat(cpMusicVolume.value)));
+
+function handleMusicVolInput(pctVal) {
+  const clamped = Math.max(0, Math.min(200, parseInt(pctVal) || 0));
+  const mvi  = document.getElementById('musicVolumeInput');
+  const cmvi = document.getElementById('cpMusicVolumeInput');
+  if (mvi) mvi.value = clamped;
+  if (cmvi) cmvi.value = clamped;
+  setMusicVolume(clamped / 100);
+}
+document.getElementById('musicVolumeInput')?.addEventListener('input',  function () { handleMusicVolInput(this.value); });
+document.getElementById('musicVolumeInput')?.addEventListener('change', function () { this.value = Math.max(0, Math.min(200, parseInt(this.value) || 0)); handleMusicVolInput(this.value); });
+document.getElementById('cpMusicVolumeInput')?.addEventListener('input',  function () { handleMusicVolInput(this.value); });
+document.getElementById('cpMusicVolumeInput')?.addEventListener('change', function () { this.value = Math.max(0, Math.min(200, parseInt(this.value) || 0)); handleMusicVolInput(this.value); });
 
 // CP Media controls
 if (cpMediaPrev) cpMediaPrev.addEventListener('click', () => mediaPrev.click());
@@ -3361,11 +3540,6 @@ updateMediaNotesUI = function(){
   cpMediaNotes.placeholder = mediaNotes.placeholder;
 };
 
-// Sync Music checkboxes
-if (musicPlayOnFinish && cpMusicPlayOnFinish) {
-  musicPlayOnFinish.addEventListener('change', () => { cpMusicPlayOnFinish.checked = musicPlayOnFinish.checked; });
-  cpMusicPlayOnFinish.addEventListener('change', () => { musicPlayOnFinish.checked = cpMusicPlayOnFinish.checked; });
-}
 if (musicTransition && cpMusicTransition) {
   musicTransition.addEventListener('change', () => { cpMusicTransition.checked = musicTransition.checked; });
   cpMusicTransition.addEventListener('change', () => { musicTransition.checked = cpMusicTransition.checked; });
@@ -3655,17 +3829,60 @@ announceSoundboardFiles?.addEventListener('change', e => {
     const item = {name: f.name, url, type: f.type, file: f, durationFormatted: 'Loading...'};
     soundboardSounds.push(item);
     loadFileMetadata(item, renderSoundboardGrid);
+    analyzeSbPeak(item);
   });
   renderSoundboardGrid();
 });
 
-// Volume sync: announce ↔ audio page
-announceSoundboardVolume?.addEventListener('input', () => {
-  if (soundboardVolume) soundboardVolume.value = announceSoundboardVolume.value;
+// Volume sync: announce ↔ audio page (slider + number input)
+const soundboardVolumeInput = document.getElementById('soundboardVolumeInput');
+const announceSoundboardVolumeInput = document.getElementById('announceSoundboardVolumeInput');
+
+function syncSbVolumeInputs(sliderVal) {
+  const pct = Math.round(sliderVal * 100);
+  if (soundboardVolumeInput) soundboardVolumeInput.value = pct;
+  if (announceSoundboardVolumeInput) announceSoundboardVolumeInput.value = pct;
+}
+function setSbVolume(val) {
+  const clamped = Math.max(0, Math.min(2, val));
+  if (soundboardVolume) soundboardVolume.value = clamped;
+  if (announceSoundboardVolume) announceSoundboardVolume.value = clamped;
+  syncSbVolumeInputs(clamped);
+}
+
+announceSoundboardVolume?.addEventListener('input', () => setSbVolume(parseFloat(announceSoundboardVolume.value)));
+soundboardVolume?.addEventListener('input', () => setSbVolume(parseFloat(soundboardVolume.value)));
+
+soundboardVolumeInput?.addEventListener('input', () => setSbVolume(parseFloat(soundboardVolumeInput.value || 0) / 100));
+soundboardVolumeInput?.addEventListener('change', () => {
+  const clamped = Math.max(0, Math.min(200, parseInt(soundboardVolumeInput.value) || 0));
+  soundboardVolumeInput.value = clamped;
+  setSbVolume(clamped / 100);
 });
-soundboardVolume?.addEventListener('input', () => {
-  if (announceSoundboardVolume) announceSoundboardVolume.value = soundboardVolume.value;
+announceSoundboardVolumeInput?.addEventListener('input', () => setSbVolume(parseFloat(announceSoundboardVolumeInput.value || 0) / 100));
+announceSoundboardVolumeInput?.addEventListener('change', () => {
+  const clamped = Math.max(0, Math.min(200, parseInt(announceSoundboardVolumeInput.value) || 0));
+  announceSoundboardVolumeInput.value = clamped;
+  setSbVolume(clamped / 100);
 });
+
+// Stable volume toggle sync
+async function applyStableVolume(enabled) {
+  stableVolumeEnabled = enabled;
+  const elA = document.getElementById('stableVolume');
+  const elB = document.getElementById('announceStableVolume');
+  if (elA) elA.checked = enabled;
+  if (elB) elB.checked = enabled;
+  if (enabled) {
+    for (const s of soundboardSounds) {
+      if (s.url && s.peakAmplitude === undefined) await analyzeSbPeak(s);
+    }
+  }
+  // Refresh all labels (show adjustments when on, reset to 0.0 dB when off)
+  updateAllSbNormLabels();
+}
+document.getElementById('stableVolume')?.addEventListener('change', function () { applyStableVolume(this.checked); });
+document.getElementById('announceStableVolume')?.addEventListener('change', function () { applyStableVolume(this.checked); });
 
 // --- Typed Announcement ---
 let announcementLingerTimeout = null;
@@ -3724,8 +3941,9 @@ document.getElementById('clearAnnouncementBtn')?.addEventListener('click', clear
   // Sync timer inputs
   if (anTimerInputMin && timerInputMin) anTimerInputMin.value = timerInputMin.value;
   if (anTimerInputSec && timerInputSec) anTimerInputSec.value = timerInputSec.value;
-  // Sync soundboard volume
+  // Sync soundboard volume + number inputs
   if (announceSoundboardVolume && soundboardVolume) announceSoundboardVolume.value = soundboardVolume.value;
+  syncSbVolumeInputs(parseFloat(soundboardVolume?.value) || 1);
 })();
 
 // ===== SETTINGS PAGE =====

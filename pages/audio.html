@@ -17,11 +17,16 @@
           <button id="musicShuffle" class="action-button" title="Shuffle">Shuffle</button>
         </div>
         <div class="row wrap" style="margin-top: 10px; gap: 12px; font-size: 0.9rem;">
-          <label><input id="musicPlayOnFinish" type="checkbox" checked> Play on finish</label>
           <label><input id="musicTransition" type="checkbox" checked> Audio crossfade</label>
         </div>
-        <div class="row">
-          <label>Music volume: <input id="musicVolume" type="range" min="0" max="1" step="0.01" value="1"></label>
+        <div class="sb-vol-row">
+          <span class="sb-vol-label">Music vol:</span>
+          <div class="sb-vol-slider-wrap">
+            <input id="musicVolume" type="range" min="0" max="2" step="0.01" value="1" list="musicVolMarks">
+            <datalist id="musicVolMarks"><option value="1"></datalist>
+          </div>
+          <input id="musicVolumeInput" type="number" min="0" max="200" step="1" value="100" class="sb-vol-input">
+          <span class="sb-vol-pct">%</span>
         </div>
         <div class="file-input-box">
           <input id="musicFiles" type="file" accept="audio/*" multiple aria-describedby="musicFileTypes">
@@ -44,9 +49,17 @@
           <div id="soundboardFileTypes" class="file-type-list">Supported: MP3, WAV, OGG, M4A, AAC, FLAC, and other
             browser-playable audio files.</div>
         </div>
-        <div class="row">
-          <label>Soundboard volume: <input id="soundboardVolume" type="range" min="0" max="1" step="0.01"
-              value="1"></label>
+        <div class="sb-vol-row">
+          <span class="sb-vol-label">Soundboard vol:</span>
+          <div class="sb-vol-slider-wrap">
+            <input id="soundboardVolume" type="range" min="0" max="2" step="0.01" value="1" list="sbVolMarks">
+            <datalist id="sbVolMarks"><option value="1"></datalist>
+          </div>
+          <input id="soundboardVolumeInput" type="number" min="0" max="200" step="1" value="100" class="sb-vol-input">
+          <span class="sb-vol-pct">%</span>
+        </div>
+        <div class="row" style="margin-top:6px;margin-bottom:4px;font-size:.85rem">
+          <label><input id="stableVolume" type="checkbox"> Stable volume</label>
         </div>
         <div id="soundboardGrid" class="soundboard-grid"></div>
       </section>
