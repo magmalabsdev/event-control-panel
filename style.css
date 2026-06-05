@@ -743,3 +743,4 @@ body.light-mode.advanced-mode .adv {
   background: rgba(8, 26, 92, 0.1);
   border-left-color: #3062f0;
 }
+.sb-duration-label{font-size:.58rem;opacity:.38;font-family:'Space Mono',monospace;text-align:center;letter-spacing:.02em;min-height:.8em}

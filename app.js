@@ -81,6 +81,24 @@ function updateSbPlayingState(url, delta) {
   });
 }
 
+function formatSbDuration(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return '';
+  if (seconds < 60) return seconds.toFixed(3) + ' s';
+  const min = Math.floor(seconds / 60);
+  const sec = (seconds % 60).toFixed(3).padStart(6, '0');
+  return `${min}:${sec}`;
+}
+
+function updateSbDurationLabel(url, seconds) {
+  const text = formatSbDuration(seconds);
+  document.querySelectorAll('.soundboard-item').forEach(el => {
+    if (el.dataset.sbUrl === url) {
+      const d = el.querySelector('.sb-duration-label');
+      if (d) d.textContent = text;
+    }
+  });
+}
+
 function getSbAudioContext() {
   if (!sbAudioContext || sbAudioContext.state === 'closed') {
     sbAudioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -111,6 +129,11 @@ async function analyzeSbPeak(sound) {
       }
     }
     sound.peakAmplitude = peak;
+    // Capture duration from the decoded buffer (free, already decoded)
+    if (sound.duration === undefined) {
+      sound.duration = audioBuf.duration;
+      updateSbDurationLabel(sound.url, sound.duration);
+    }
     // Update any rendered norm labels for this sound
     document.querySelectorAll('.soundboard-item').forEach(el => {
       if (el.dataset.sbUrl === sound.url) {
@@ -2352,7 +2375,25 @@ function makeSoundboardButton(s) {
   normSpan.className = 'sb-norm-label';
   applyNormLabel(normSpan, s);
 
-  button.append(nameSpan, normSpan);
+  const durSpan = document.createElement('span');
+  durSpan.className = 'sb-duration-label';
+  durSpan.textContent = s.duration !== undefined ? formatSbDuration(s.duration) : '…';
+
+  // Lazy-load duration for sounds whose metadata hasn't been read yet (e.g. preset imports)
+  if (s.duration === undefined && s.url && !s._loadingDuration) {
+    s._loadingDuration = true;
+    const a = new Audio();
+    a.preload = 'metadata';
+    a.addEventListener('loadedmetadata', () => {
+      s.duration = a.duration;
+      s._loadingDuration = false;
+      updateSbDurationLabel(s.url, s.duration);
+      a.src = '';
+    });
+    a.src = s.url;
+  }
+
+  button.append(nameSpan, normSpan, durSpan);
   button.addEventListener('click', () => { playSoundboardItem(s); });
 
   const sbActions = document.createElement('div');
@@ -3248,24 +3289,56 @@ let mediaRecorder = null;
 let recordedChunks = [];
 let intercomActive = false;
 let intercomAudioEl = null;
+// Live passthrough runs through the Web Audio graph (low latency) rather than an
+// HTMLAudioElement, which buffers a live MediaStream by 150-500ms.
+let intercomCtx = null;
+let intercomSourceNode = null;
+let intercomGainNode = null;
 
 async function startIntercom(){
-  const constraints = selectedInputDeviceId ? {audio:{deviceId:{exact:selectedInputDeviceId}}} : {audio:true};
+  // Disable the mic DSP (echo cancellation / noise suppression / AGC) — each adds
+  // tens of ms of processing delay — and request the lowest-latency capture path.
+  const audioConstraints = {
+    echoCancellation: false,
+    noiseSuppression: false,
+    autoGainControl: false,
+    latency: 0,
+  };
+  if (selectedInputDeviceId) audioConstraints.deviceId = {exact:selectedInputDeviceId};
+  const constraints = {audio: audioConstraints};
   try{
     mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
   }catch(err){ alert('Microphone access denied or not available: '+err.message); return; }
 
   const mode = document.querySelector('input[name="mode"]:checked').value;
   if (mode==='live'){
-    // passthrough to output
-    intercomAudioEl = new Audio();
-    intercomAudioEl.srcObject = mediaStream;
-    intercomAudioEl.autoplay = true;
-    intercomAudioEl.volume = parseFloat(intercomVolume.value);
-    if (selectedOutputDeviceId && typeof intercomAudioEl.setSinkId === 'function'){
-      try { await intercomAudioEl.setSinkId(selectedOutputDeviceId); } catch (err) { console.warn('Failed to set output device:', err); }
+    // Low-latency passthrough via Web Audio: mic -> gain -> destination.
+    try {
+      intercomCtx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+      // Route to the chosen output device when AudioContext.setSinkId is available.
+      if (selectedOutputDeviceId && typeof intercomCtx.setSinkId === 'function'){
+        try { await intercomCtx.setSinkId(selectedOutputDeviceId); } catch (err) { console.warn('Failed to set output device:', err); }
+      }
+      intercomSourceNode = intercomCtx.createMediaStreamSource(mediaStream);
+      intercomGainNode = intercomCtx.createGain();
+      intercomGainNode.gain.value = parseFloat(intercomVolume.value);
+      intercomSourceNode.connect(intercomGainNode).connect(intercomCtx.destination);
+      await intercomCtx.resume().catch(()=>{});
+    } catch (err) {
+      // Fallback to the media-element path (higher latency) if Web Audio fails or
+      // an output device is selected but AudioContext.setSinkId is unsupported.
+      console.warn('Web Audio passthrough unavailable, falling back to media element:', err);
+      if (intercomCtx){ try { intercomCtx.close(); } catch {} intercomCtx = null; }
+      intercomSourceNode = null; intercomGainNode = null;
+      intercomAudioEl = new Audio();
+      intercomAudioEl.srcObject = mediaStream;
+      intercomAudioEl.autoplay = true;
+      intercomAudioEl.volume = parseFloat(intercomVolume.value);
+      if (selectedOutputDeviceId && typeof intercomAudioEl.setSinkId === 'function'){
+        try { await intercomAudioEl.setSinkId(selectedOutputDeviceId); } catch (e) { console.warn('Failed to set output device:', e); }
+      }
+      await intercomAudioEl.play().catch(()=>{});
     }
-    await intercomAudioEl.play().catch(()=>{});
   } else {
     // recorded mode - start recording
     recordedChunks = [];
@@ -3286,6 +3359,9 @@ async function startIntercom(){
 async function stopIntercom(){
   const mode = document.querySelector('input[name="mode"]:checked').value;
   if (mode==='live'){
+    if (intercomSourceNode){ try { intercomSourceNode.disconnect(); } catch {} intercomSourceNode = null; }
+    if (intercomGainNode){ try { intercomGainNode.disconnect(); } catch {} intercomGainNode = null; }
+    if (intercomCtx){ intercomCtx.close().catch(()=>{}); intercomCtx = null; }
     if (intercomAudioEl){ intercomAudioEl.pause(); intercomAudioEl.srcObject = null; intercomAudioEl = null; }
   } else {
     if (mediaRecorder && mediaRecorder.state !== 'inactive'){
@@ -3396,6 +3472,7 @@ function fadeInMusic(durationSec=0.5){
 // set intercom volume control
 intercomVolume.addEventListener('input', ()=>{
   const v = parseFloat(intercomVolume.value);
+  if (intercomGainNode) intercomGainNode.gain.value = v;
   if (intercomAudioEl) intercomAudioEl.volume = v;
 });
 
@@ -3754,7 +3831,9 @@ document.querySelectorAll('input[name="mode"]').forEach(r => {
 // Volume sync
 anIntercomVolume?.addEventListener('input', () => {
   if (intercomVolume) intercomVolume.value = anIntercomVolume.value;
-  if (intercomAudioEl) intercomAudioEl.volume = parseFloat(anIntercomVolume.value);
+  const v = parseFloat(anIntercomVolume.value);
+  if (intercomGainNode) intercomGainNode.gain.value = v;
+  if (intercomAudioEl) intercomAudioEl.volume = v;
 });
 intercomVolume?.addEventListener('input', () => {
   if (anIntercomVolume) anIntercomVolume.value = intercomVolume.value;
