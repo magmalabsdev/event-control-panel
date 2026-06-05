@@ -1213,17 +1213,34 @@ function applyPreset(preset){
   }
 }
 
-async function loadPresetFile(file){
-  const text = await file.text();
+// Parse .ecp text into a preset and add it to the list. Returns the new index.
+function loadPresetFromText(text, name){
   const payload = JSON.parse(text);
   if (!payload || payload.version !== 1) throw new Error('Unsupported session file');
-  const preset = buildPresetFromPayload(payload, file.name);
+  const preset = buildPresetFromPayload(payload, name);
   presets.push(preset);
+  const index = presets.length - 1;
   if (selectedPresetIndex === -1){
-    selectedPresetIndex = 0;
+    selectedPresetIndex = index;
     applyPreset(preset);
   }
   updatePresetSelect();
+  return index;
+}
+
+async function loadPresetFile(file){
+  loadPresetFromText(await file.text(), file.name);
+}
+
+// Open a .ecp handed to us by the OS (file-explorer double-click / "open with"):
+// add it, then select and apply it so it becomes the active preset immediately.
+function openIncomingPreset(name, content){
+  const index = loadPresetFromText(content, name);
+  selectedPresetIndex = index;
+  applyPreset(presets[index]);
+  updatePresetSelect();
+  setStatus(`Opened preset: ${presets[index].name}`);
+  setTimeout(() => setStatus(''), 4000);
 }
 
 async function exportSelectedPreset(){
@@ -1405,10 +1422,12 @@ const EMU_PER_PX = 9525;
 const PPTX_PRES_NS = 'http://schemas.openxmlformats.org/presentationml/2006/main';
 const PPTX_DRAW_NS = 'http://schemas.openxmlformats.org/drawingml/2006/main';
 const PPTX_REL_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
-const PDFJS_GLOBAL_SCRIPT_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.246/pdf.min.js';
-const PDFJS_GLOBAL_WORKER_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.246/pdf.worker.min.js';
-const PDFJS_MODULE_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
-const PDFJS_MODULE_WORKER_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+// Vendored locally so PDF import works offline in the packaged app.
+// Global UMD build (loads via <script>) is tried first; ESM build is the fallback.
+const PDFJS_GLOBAL_SCRIPT_SRC = 'vendor/pdfjs/pdf.min.js';
+const PDFJS_GLOBAL_WORKER_SRC = 'vendor/pdfjs/pdf.worker.min.js';
+const PDFJS_MODULE_SRC = 'vendor/pdfjs/pdf.min.mjs';
+const PDFJS_MODULE_WORKER_SRC = 'vendor/pdfjs/pdf.worker.min.mjs';
 let pdfJsReadyPromise = null;
 const loadedPptxFontFamilies = new Set();
 
@@ -3476,6 +3495,18 @@ intercomVolume.addEventListener('input', ()=>{
   if (intercomAudioEl) intercomAudioEl.volume = v;
 });
 
+// Desktop app: load a .ecp handed to us by the OS (double-click / "open with").
+// Harmless no-op in the browser, where window.ecpBridge is undefined.
+window.ecpBridge?.onOpenPreset(({ name, content }) => {
+  try {
+    openIncomingPreset(name, content);
+  } catch (err) {
+    console.error(err);
+    setStatus(`Failed to open preset: ${err.message || 'unknown error'}`);
+    setTimeout(() => setStatus(''), 5000);
+  }
+});
+
 // initial UI
 applyVolumeSettings();
 updateMusicUI();
@@ -4346,35 +4377,13 @@ document.getElementById('clearAnnouncementBtn')?.addEventListener('click', clear
 })();
 
 // ===== VERSION TAG =====
+// Static version for the packaged desktop apps (they do not self-update).
+// Keep this in sync with the "version" field in package.json.
+const APP_VERSION = 'v26.6.7';
 (function initVersionTag() {
   const el = document.querySelector('.version-tag');
   if (!el) return;
-
-  const now   = new Date();
-  const year  = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const yy    = String(year).slice(-2);
-
-  // Cache per month so we don't hammer the API on every reload
-  const cacheKey = `ecp-version-${yy}${String(month).padStart(2, '0')}`;
-  const cached = sessionStorage.getItem(cacheKey);
-  if (cached) { el.textContent = cached; return; }
-
-  // Show partial version while the fetch is in flight
-  el.textContent = `v${yy}.${month}.…`;
-
-  const since = `${year}-${String(month).padStart(2, '0')}-01T00:00:00Z`;
-  fetch(
-    `https://api.github.com/repos/MagmaSpeedCubes/event-control-panel/commits?since=${since}&per_page=100`,
-    { headers: { Accept: 'application/vnd.github+json' } }
-  )
-    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(commits => {
-      const v = `v${yy}.${month}.${commits.length}`;
-      el.textContent = v;
-      sessionStorage.setItem(cacheKey, v);
-    })
-    .catch(() => { el.textContent = `v${yy}.${month}.?`; });
+  el.textContent = APP_VERSION;
 })();
 
 // ===== DISPLAY FREEZE / HIDE =====

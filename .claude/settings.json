@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sSL -o pdf.min.js https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js)",
+      "Bash(curl -sSL -o pdf.worker.min.js https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js)",
+      "Bash(npm install *)",
+      "Bash(/Users/alexli/RealDocuments/event-control-panel/node_modules/.bin/electron --version)",
+      "Bash(python3 -c \"import sys,json;print\\('electron', json.load\\(sys.stdin\\)['version']\\)\")",
+      "Bash(python3 -c \"import sys,json;print\\('electron-builder', json.load\\(sys.stdin\\)['version']\\)\")",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac)",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --win)",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --win --x64)",
+      "Bash(open \"dist/mac-arm64/Event Control Panel.app\")",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --win --x64)",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --universal)",
+      "Bash(CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --linux AppImage --x64)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); console.log\\('package.json valid JSON'\\)\")",
+      "Bash(node --check main.js)",
+      "Bash(node --check preload.js)",
+      "Bash(node scripts/make-ico.js)",
+      "Bash(brew --version)",
+      "Bash(brew list *)",
+      "Bash(brew install *)",
+      "Bash(HOMEBREW_NO_AUTO_UPDATE=1 brew install --cask wine-stable)",
+      "Bash(awk '{print $5, $9, $10, $11, $12}')",
+      "Bash(rm -f /tmp/sample.ecp; echo \"cleaned up temp sample\")",
+      "Bash(rm -rf dist/mac dist/mac-arm64 dist/mac-universal*)",
+      "Bash(ADHOC_SIGN=1 CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac dmg zip --x64 --arm64)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('package.json','utf8'\\)\\); console.log\\('package.json valid'\\)\")",
+      "Bash(node --check build/after-pack.js)",
+      "Bash(awk 'NR>1{printf \"%-6s %s\\\\n\",$5,substr\\($0,index\\($0,$9\\)\\)}')"
+    ],
+    "additionalDirectories": [
+      "/private/tmp"
+    ]
+  }
+}

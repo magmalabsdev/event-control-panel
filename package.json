@@ -1,0 +1,88 @@
+{
+  "name": "event-control-panel",
+  "version": "26.6.7",
+  "productName": "Event Control Panel",
+  "description": "Event Control Panel — audio, announcements, media and visuals control for live events.",
+  "author": "MagmaLabs",
+  "license": "GPL-3.0-only",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux",
+    "dist": "electron-builder -mwl"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "png-to-ico": "^2.1.8"
+  },
+  "build": {
+    "appId": "com.magmalabs.eventcontrolpanel",
+    "productName": "Event Control Panel",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "afterPack": "build/after-pack.js",
+    "files": [
+      "index.html",
+      "media.html",
+      "main.js",
+      "preload.js",
+      "app.js",
+      "style.css",
+      "pages/**",
+      "icons/**",
+      "vendor/**",
+      "ecp-logo.png",
+      "ecp-banner.png",
+      "by-magmalabs.png",
+      "kofi.png"
+    ],
+    "fileAssociations": [
+      {
+        "ext": "ecp",
+        "name": "Event Control Panel Preset",
+        "description": "Event Control Panel preset",
+        "role": "Editor",
+        "icon": "build/icon"
+      }
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.utilities",
+      "icon": "build/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Event Control Panel uses the microphone for live announcements."
+      }
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "AudioVideo",
+      "icon": "build/icon.png"
+    }
+  }
+}
