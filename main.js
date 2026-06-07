@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain } = require('electron');
+const { app, BrowserWindow, session, ipcMain, desktopCapturer } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -54,7 +54,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     backgroundColor: '#111111',
-    icon: path.join(__dirname, 'ecp-logo.png'), // taskbar/window icon on Windows/Linux
+    icon: path.join(__dirname, 'app', 'ecp-logo.png'), // taskbar/window icon on Windows/Linux
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -62,7 +62,7 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile('app/index.html');
 
   // Allow the "display" window opened via window.open('media.html', ...) to render.
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'allow' }));
@@ -108,6 +108,17 @@ if (!gotLock) {
       }
       callback(false);
     });
+
+    // Enable screen sharing (getDisplayMedia) from the Visuals panel. On macOS the
+    // native OS picker is used; elsewhere we default to the primary screen with
+    // system-audio loopback.
+    session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
+      desktopCapturer.getSources({ types: ['screen', 'window'] }).then(sources => {
+        const source = sources.find(s => s.id.startsWith('screen')) || sources[0];
+        if (source) callback({ video: source, audio: 'loopback' });
+        else callback();
+      }).catch(() => callback());
+    }, { useSystemPicker: true });
 
     createWindow();
 

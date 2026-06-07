@@ -27,19 +27,9 @@
     },
     "afterPack": "build/after-pack.js",
     "files": [
-      "index.html",
-      "media.html",
       "main.js",
       "preload.js",
-      "app.js",
-      "style.css",
-      "pages/**",
-      "icons/**",
-      "vendor/**",
-      "ecp-logo.png",
-      "ecp-banner.png",
-      "by-magmalabs.png",
-      "kofi.png"
+      "app/**"
     ],
     "fileAssociations": [
       {

@@ -21,8 +21,10 @@ npx serve .
 
 ### 2. Open ECP
 
+The root URL serves the landing page; the control panel itself lives under `/app/`:
+
 ```
-http://localhost:8000
+http://localhost:8000/app/
 ```
 
 ### 3. Open the Display Window
@@ -82,3 +84,5 @@ The Announce page and Control Panel share intercom settings and the clock widget
 | YouTube | Video embed in Display Window |
 | Google Drive | File preview (must be publicly shared) |
 | Google Slides | Presentation embed (must be published to the web) |
+| Screen share | Live screen, window, or tab feed (`getDisplayMedia`) |
+| Live camera | Live webcam feed (`getUserMedia`) |

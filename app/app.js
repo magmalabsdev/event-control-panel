@@ -240,6 +240,8 @@ const mediaNotes = document.getElementById('mediaNotes');
 const mediaMirror = document.getElementById('mediaMirror');
 const transitionTimeEl = document.getElementById('transitionTime');
 const openDisplay = document.getElementById('openDisplay');
+const addScreenShare = document.getElementById('addScreenShare');
+const addCameraFeed = document.getElementById('addCameraFeed');
 const mediaMirrorContent = document.getElementById('mediaMirrorContent');
 const mediaPrevPreview = document.getElementById('mediaPrevPreview');
 const mediaNextPreview = document.getElementById('mediaNextPreview');
@@ -1049,7 +1051,7 @@ async function createEcpPayload(sessionState){
 
   const musicItems = state.music || state.songs || [];
   const soundboardItems = state.soundboard || state.soundboardSounds || [];
-  const mediaItems = state.media || [];
+  const mediaItems = (state.media || []).filter(m => !isLiveItem(m));
 
   return {
     version: 1,
@@ -2052,7 +2054,7 @@ function createListItem(item, index, type){
   if (type === 'music' && (item.source === 'youtube' || item.source === 'spotify')) {
     li.classList.add('stream-item');
   }
-  if (type === 'media' && (item.source === 'youtube-media' || item.source === 'gdrive')) {
+  if (type === 'media' && (item.source === 'youtube-media' || item.source === 'gdrive' || item.type === 'camera' || item.type === 'screen')) {
     li.classList.add('stream-item');
   }
 
@@ -2092,6 +2094,12 @@ function createListItem(item, index, type){
   } else if (item.source === 'image-url') {
     typeText.textContent = 'Web Image';
     typeText.className = 'source-badge badge-web';
+  } else if (item.type === 'camera') {
+    typeText.textContent = 'Live Camera';
+    typeText.className = 'source-badge badge-live';
+  } else if (item.type === 'screen') {
+    typeText.textContent = 'Live Screen';
+    typeText.className = 'source-badge badge-live';
   } else if (item.type.startsWith('video/')) {
     typeText.textContent = item.durationFormatted || 'Loading...';
   } else if (item.source === 'pdf') {
@@ -2137,6 +2145,8 @@ function createListItem(item, index, type){
       warns.push({ text: '⚠ Slide navigation and timing are controlled by Google Slides, not ECP', cls: 'stream-warning stream-warning-red' });
     } else if (item.source === 'image-url') {
       warns.push({ text: '⚠ Served from an external URL — may break if the source changes or goes offline', cls: 'stream-warning stream-warning-amber' });
+    } else if (item.type === 'camera' || item.type === 'screen') {
+      warns.push({ text: '⚠ Live feed — not saved in session files; ends when the source stops', cls: 'stream-warning stream-warning-amber' });
     }
     warns.forEach(({ text, cls }) => {
       const warn = document.createElement('span');
@@ -2267,12 +2277,23 @@ function removeItem(type, index){
   const currentIndex = type === 'music' ? currentSongIndex : currentMediaIndex;
   if (type === 'music' && queuedMusicNext === list[index]) queuedMusicNext = null;
   if (type === 'media' && queuedMediaNext === list[index]) queuedMediaNext = null;
+  const removingLive = type === 'media' && isLiveItem(list[index]);
+  if (removingLive) stopLiveItem(list[index]);
   list.splice(index, 1);
   if (type === 'music') {
     if (currentIndex === index) { musicAudio.pause(); musicPlaying = false; currentSongIndex = -1; }
     else if (currentIndex > index) currentSongIndex--;
   } else {
-    if (currentIndex === index) { stopMediaLoop(); currentMediaIndex = -1; }
+    if (currentIndex === index) {
+      stopMediaLoop();
+      currentMediaIndex = -1;
+      if (removingLive) {
+        updateMediaMirror(null);
+        if (displayWindow && !displayWindow.closed && !displayFrozen) {
+          displayWindow.postMessage({ type: 'show', item: null }, '*');
+        }
+      }
+    }
     else if (currentIndex > index) currentMediaIndex--;
   }
   renderQueues();
@@ -2911,6 +2932,102 @@ function openDisplayWindow(){
 }
 
 openDisplay.addEventListener('click', openDisplayWindow);
+
+// ===== Live sources (screen share / camera feed) =====
+// Live items hold a reference to a live MediaStream (item.stream). Streams can't be
+// serialized, so these items are excluded from session (.ecp) files.
+function isLiveItem(item){ return !!item && (item.type === 'camera' || item.type === 'screen'); }
+
+async function addLiveSource(kind){
+  if (!navigator.mediaDevices || !(kind === 'screen' ? navigator.mediaDevices.getDisplayMedia : navigator.mediaDevices.getUserMedia)) {
+    setStatus('Live media capture is not supported in this browser.');
+    setTimeout(() => setStatus(''), 4000);
+    return;
+  }
+  let stream;
+  try {
+    if (kind === 'screen') {
+      stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    } else {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    }
+  } catch (err) {
+    if (err && (err.name === 'NotAllowedError' || err.name === 'AbortError')) {
+      setStatus(kind === 'screen' ? 'Screen share cancelled.' : 'Camera access denied.');
+    } else {
+      setStatus(`Could not start ${kind === 'screen' ? 'screen share' : 'camera'}: ${err.message || err.name || 'unknown error'}`);
+    }
+    setTimeout(() => setStatus(''), 4000);
+    return;
+  }
+
+  const trackLabel = stream.getVideoTracks()[0]?.label;
+  const item = {
+    name: kind === 'screen' ? 'Screen Share' : (trackLabel ? `Camera: ${trackLabel}` : 'Camera'),
+    type: kind,
+    source: kind === 'screen' ? 'screen-share' : 'camera-feed',
+    url: '',
+    stream,
+    notes: '',
+    durationFormatted: kind === 'screen' ? 'Live Screen' : 'Live Camera',
+    pages: 1
+  };
+  media.push(item);
+
+  // When the user stops sharing from the browser's own UI, the track ends.
+  stream.getVideoTracks().forEach(track => {
+    track.addEventListener('ended', () => removeLiveItem(item));
+  });
+
+  renderMediaQueue();
+  setStatus(`Added ${item.name}`);
+  setTimeout(() => setStatus(''), 3000);
+  showMediaAt(media.indexOf(item));
+}
+
+function stopLiveItem(item){
+  if (item && item.stream) {
+    try { item.stream.getTracks().forEach(t => t.stop()); } catch {}
+    item.stream = null;
+  }
+}
+
+function removeLiveItem(item){
+  const idx = media.indexOf(item);
+  stopLiveItem(item);
+  if (idx === -1) return;
+  const wasCurrent = idx === currentMediaIndex;
+  media.splice(idx, 1);
+  if (currentMediaIndex === idx) currentMediaIndex = -1;
+  else if (currentMediaIndex > idx) currentMediaIndex--;
+  renderMediaQueue();
+  if (wasCurrent) {
+    updateMediaMirror(null);
+    if (displayWindow && !displayWindow.closed && !displayFrozen) {
+      displayWindow.postMessage({ type: 'show', item: null }, '*');
+    }
+  }
+  updateMediaUI();
+  setStatus('Live source ended');
+  setTimeout(() => setStatus(''), 3000);
+}
+
+function sendLiveStreamToDisplay(item, transition = false, attempt = 0){
+  if (!item || !item.stream || !displayWindow || displayWindow.closed) return;
+  if (typeof displayWindow.showLiveStream === 'function') {
+    displayWindow.showLiveStream(item.stream, {
+      muted: mediaMuteAudio ? !!mediaMuteAudio.checked : true,
+      transition
+    });
+  } else if (attempt < 25) {
+    // Display window may still be loading after openDisplayWindow().
+    setTimeout(() => sendLiveStreamToDisplay(item, transition, attempt + 1), 120);
+  }
+}
+
+addScreenShare?.addEventListener('click', () => addLiveSource('screen'));
+addCameraFeed?.addEventListener('click', () => addLiveSource('camera'));
+
 mediaPrevPreview?.addEventListener('click', () => {
   const idx = Math.max(0, currentMediaIndex - 1);
   if (media[idx]?.breakpoint && !confirm(`⛔ "${media[idx].name}" is a breakpoint.\n\nProceed past this breakpoint?`)) return;
@@ -2964,6 +3081,7 @@ function showMediaAt(i, autoplay = true){
 function sendMediaToDisplay(item, autoplay = true, transition = false){
   if (displayFrozen) { frozenPendingItem = { item, autoplay, transition }; return; }
   if (!displayWindow || displayWindow.closed) openDisplayWindow();
+  if (isLiveItem(item)) { sendLiveStreamToDisplay(item, transition); return; }
   const msg = {type:'show', item:{name:item.name,url:item.url,type:item.type, muted: (mediaMuteAudio ? !!mediaMuteAudio.checked : true), autoplay, embedUrl: item.embedUrl || null}, transition};
   setTimeout(()=> { if (displayWindow && !displayWindow.closed) displayWindow.postMessage(msg,'*'); },200);
 }
@@ -3112,6 +3230,18 @@ function updateMediaMirror(item, autoplay = true){
       iframe.allow = 'autoplay; fullscreen; encrypted-media';
       iframe.allowFullscreen = true;
       mediaMirrorContent.appendChild(iframe);
+    } else if (item.type === 'camera' || item.type === 'screen') {
+      const video = document.createElement('video');
+      video.srcObject = item.stream || null;
+      video.autoplay = true;
+      video.muted = true; // always muted in the operator mirror to avoid feedback
+      video.playsInline = true;
+      video.controls = false;
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.objectFit = 'contain';
+      mediaMirrorContent.appendChild(video);
+      video.play?.().catch(()=>{});
     } else {
       mediaMirrorContent.textContent = item.name;
     }
@@ -3172,7 +3302,7 @@ function renderPreviewCard(button, item, label){
   } else {
     const icon = document.createElement('div');
     icon.className = 'preview-icon';
-    icon.textContent = item.type.startsWith('video/') ? 'Video' : item.type === 'youtube-embed' ? 'YouTube' : item.type === 'gdrive-embed' ? 'Drive' : item.type === 'gslides-embed' ? 'Slides' : item.type === 'slide' ? 'Slide' : 'Media';
+    icon.textContent = item.type.startsWith('video/') ? 'Video' : item.type === 'youtube-embed' ? 'YouTube' : item.type === 'gdrive-embed' ? 'Drive' : item.type === 'gslides-embed' ? 'Slides' : item.type === 'slide' ? 'Slide' : item.type === 'camera' ? 'Camera' : item.type === 'screen' ? 'Screen' : 'Media';
     thumbWrapper.appendChild(icon);
   }
   const title = document.createElement('div');
@@ -3192,8 +3322,8 @@ function scheduleMediaAdvance(){
   if (media.length===0 || currentMediaIndex < 0) return;
   const current = media[currentMediaIndex];
   if (!current) return;
-  if (current.type.startsWith('video/') || current.type === 'youtube-embed' || current.type === 'gdrive-embed' || current.type === 'gslides-embed') {
-    // wait for video ended event; embeds have no ended detection on static sites
+  if (current.type.startsWith('video/') || current.type === 'youtube-embed' || current.type === 'gdrive-embed' || current.type === 'gslides-embed' || current.type === 'camera' || current.type === 'screen') {
+    // wait for video ended event; embeds and live feeds have no auto-advance
     return;
   }
   const transition = Math.max(1, parseFloat(transitionTimeEl.value) || 5) * 1000;
@@ -3582,6 +3712,15 @@ function syncCpMirror(item){
     icon.textContent = '▶ ' + current.name;
     icon.style.cssText = 'color:#888;font-size:.75rem;text-align:center;padding:8px';
     cpMirrorContent.appendChild(icon);
+  } else if (current.type === 'camera' || current.type === 'screen') {
+    const video = document.createElement('video');
+    video.srcObject = current.stream || null;
+    video.autoplay = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block';
+    cpMirrorContent.appendChild(video);
+    video.play?.().catch(()=>{});
   } else {
     cpMirrorContent.textContent = current.name;
   }

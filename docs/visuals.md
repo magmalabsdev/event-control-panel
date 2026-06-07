@@ -1,6 +1,6 @@
 # Visuals Page
 
-The Visuals page manages everything shown on the audience display: images, videos, PDFs, PowerPoint slides, and web embeds. It includes a full-featured presenter view with a mirror display, slide notes, and preview cards for adjacent items.
+The Visuals page manages everything shown on the audience display: images, videos, PDFs, PowerPoint slides, web embeds, and live feeds (screen share / camera). It includes a full-featured presenter view with a mirror display, slide notes, and preview cards for adjacent items.
 
 ## Layout
 
@@ -60,6 +60,23 @@ Paste a link into the URL input and click **Add** (or press Enter).
 
 > **Mirror sync warning:** YouTube, Google Drive, and Google Slides items render inside iframes. ECP cannot control or synchronise the mirror display for these — the mirror shows the iframe content but the Display Window must be controlled manually. A red warning banner appears on the Presenter mirror when an embed is active.
 
+### Live sources
+
+Below the file picker, two buttons add real-time feeds to the queue:
+
+| Button | Behaviour |
+|--------|-----------|
+| **Share Screen** | Prompts you to pick a screen, window, or browser tab (and optionally its system audio). The shared content is sent live to the Display Window and presenter mirror. |
+| **Live Camera** | Prompts for camera access and shows the live camera feed (video only — no microphone, to avoid intercom conflicts). |
+
+Live sources behave like any other queue item — select, freeze, hide, and navigate to them as usual — with these differences:
+
+- They play in **real time** and are fully in sync with the Display Window (no mirror-sync warning).
+- The presenter mirror is always **muted** to avoid audio feedback in the operator's room. Screen-share audio plays on the Display Window unless **Mute video audio** is checked.
+- They never auto-advance.
+- They are **not saved** in `.ecp` session files.
+- The feed ends if you stop sharing from the browser's own controls or delete the queue item; deleting a live source also releases the camera/screen capture.
+
 ---
 
 ## Playback controls
@@ -97,6 +114,8 @@ Each item shows its name, type badge, and action row. Click the item to display 
 | Google Drive | Blue | Google Drive iframe |
 | Google Slides | Blue | Google Slides embed |
 | Web Image | Blue | External image URL |
+| Live Camera | Red | Live camera feed |
+| Live Screen | Red | Live screen share |
 
 ---
 
@@ -114,6 +133,7 @@ Shows a live thumbnail of the currently displayed item:
 - **Images**: rendered directly.
 - **Video**: shows the video name (a full video preview is not shown to avoid double-playback).
 - **Web embeds**: shows the embed iframe. A red banner appears with a warning that the mirror is not in sync with the Display Window.
+- **Live sources** (screen share / camera): shows the live feed, muted.
 
 ### Preview cards
 

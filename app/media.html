@@ -79,6 +79,35 @@
       currentVideo = null;
     }
 
+    // Live camera / screen-share feed. The MediaStream object is passed by direct
+    // reference from the opener window (same origin), since streams aren't serializable
+    // through postMessage.
+    window.showLiveStream = function(stream, opts){
+      opts = opts || {};
+      const apply = () => {
+        clear();
+        current = { type: 'live' };
+        const v = document.createElement('video');
+        v.srcObject = stream;
+        v.autoplay = true;
+        v.muted = !!opts.muted;
+        v.playsInline = true;
+        v.controls = false;
+        v.style.maxWidth = '100%';
+        v.style.maxHeight = '100%';
+        displayArea.appendChild(v);
+        currentVideo = v;
+        v.play().catch(()=>{});
+      };
+      if (opts.transition) {
+        displayArea.style.opacity = '0';
+        setTimeout(() => { apply(); displayArea.style.opacity = '1'; }, 150);
+      } else {
+        displayArea.style.opacity = '1';
+        apply();
+      }
+    };
+
     function showMedia(item){
       clear();
       current = item;

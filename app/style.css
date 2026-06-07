@@ -180,6 +180,8 @@ textarea:disabled{opacity:.55;cursor:not-allowed}
 .preview-icon{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);padding:8px 12px;background:#141414;border-radius:10px;color:#ddd;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
 .preview-title{margin-top:8px;font-size:.85rem;line-height:1.2;text-align:center;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .open-display-row{margin-top:12px}
+.live-source-row{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.live-source-row .file-type-list{flex-basis:100%}
 h3{margin:0 0 12px;font-size:1rem}
 h4{margin:0 0 8px}
 /* ===== URL INPUT ROW ===== */
@@ -210,6 +212,7 @@ h4{margin:0 0 8px}
 .badge-youtube{background:#c00;color:#fff}
 .badge-spotify{background:#1db954;color:#000}
 .badge-gdrive{background:#1a73e8;color:#fff}
+.badge-live{background:#d33;color:#fff}
 
 /* ===== STREAM ITEM WARNING ===== */
 li.stream-item{border-left:3px solid #a33;background:rgba(180,40,40,.08)}
