@@ -88,6 +88,10 @@ if (!gotLock) {
     else if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.focus(); }
   });
 
+  // Static build-time version (stamped by the `dist:*` scripts via extraMetadata),
+  // shown by the renderer's version tag in the packaged desktop app.
+  ipcMain.handle('get-app-version', () => app.getVersion());
+
   // The renderer tells us when its open-preset listener is wired up.
   ipcMain.on('ecp-renderer-ready', () => {
     rendererReady = true;

@@ -8,10 +8,10 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist:mac": "electron-builder --mac",
-    "dist:win": "electron-builder --win",
-    "dist:linux": "electron-builder --linux",
-    "dist": "electron-builder -mwl"
+    "dist:mac": "electron-builder --mac -c.extraMetadata.version=$(node scripts/build-version.js)",
+    "dist:win": "electron-builder --win -c.extraMetadata.version=$(node scripts/build-version.js)",
+    "dist:linux": "electron-builder --linux -c.extraMetadata.version=$(node scripts/build-version.js)",
+    "dist": "electron-builder -mwl -c.extraMetadata.version=$(node scripts/build-version.js)"
   },
   "devDependencies": {
     "electron": "^33.0.0",

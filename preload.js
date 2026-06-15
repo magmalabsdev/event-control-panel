@@ -10,3 +10,11 @@ contextBridge.exposeInMainWorld('ecpBridge', {
     ipcRenderer.send('ecp-renderer-ready');
   },
 });
+
+// Marks the renderer as the packaged desktop app and surfaces its STATIC build-time
+// version (app.getVersion()), so the version tag shows the frozen build number rather
+// than the web app's live commit-derived version.
+contextBridge.exposeInMainWorld('ecpDesktop', {
+  isElectron: true,
+  getVersion: () => ipcRenderer.invoke('get-app-version'),
+});

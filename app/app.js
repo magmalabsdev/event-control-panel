@@ -4516,13 +4516,60 @@ document.getElementById('clearAnnouncementBtn')?.addEventListener('click', clear
 })();
 
 // ===== VERSION TAG =====
-// Static version for the packaged desktop apps (they do not self-update).
-// Keep this in sync with the "version" field in package.json.
-const APP_VERSION = 'v26.6.7';
+// Two version schemes share this tag:
+//   • Desktop (Electron) builds — a STATIC version frozen at build time to the build
+//     date (YY.M.D). It is stamped into package.json by the `dist:*` scripts and read
+//     here via app.getVersion() over the preload bridge. Packaged apps don't self-update.
+//   • Web — a DYNAMIC version derived from the repo as YY.M.<commit count>, so every push
+//     that redeploys the site bumps the number automatically.
+const VERSION_REPO = 'magmalabsdev/event-control-panel';
+const VERSION_FALLBACK = 'v26.6.34'; // last-known web version if the GitHub API is unreachable
 (function initVersionTag() {
   const el = document.querySelector('.version-tag');
   if (!el) return;
-  el.textContent = APP_VERSION;
+  const setText = (v) => { el.textContent = v; };
+
+  // Desktop build: show the static, build-time version baked into the packaged app.
+  if (window.ecpDesktop && window.ecpDesktop.isElectron) {
+    window.ecpDesktop.getVersion()
+      .then((v) => setText(v ? 'v' + v : VERSION_FALLBACK))
+      .catch(() => setText(VERSION_FALLBACK));
+    return;
+  }
+
+  // Web: derive YY.M.<commit count> from the repo. Cached for an hour so repeat visits
+  // stay well under the unauthenticated GitHub API rate limit.
+  const CACHE_KEY = 'ecpWebVersion';
+  const MAX_AGE = 60 * 60 * 1000;
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) {}
+  setText(cached && cached.version ? cached.version : VERSION_FALLBACK);
+  if (cached && Date.now() - cached.ts < MAX_AGE) return;
+
+  fetchWebVersion()
+    .then((version) => {
+      setText(version);
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ version, ts: Date.now() })); } catch (_) {}
+    })
+    .catch(() => { /* keep the cached/fallback text already shown */ });
+
+  async function fetchWebVersion() {
+    const res = await fetch(
+      `https://api.github.com/repos/${VERSION_REPO}/commits?per_page=1`,
+      { headers: { Accept: 'application/vnd.github+json' } }
+    );
+    if (!res.ok) throw new Error('GitHub API ' + res.status);
+    // With per_page=1 the last page number equals the total commit count.
+    const link = res.headers.get('Link') || '';
+    const m = link.match(/[?&]page=(\d+)>;\s*rel="last"/);
+    const count = m ? parseInt(m[1], 10) : 1;
+    const data = await res.json();
+    const iso = data?.[0]?.commit?.committer?.date || null;
+    const d = iso ? new Date(iso) : new Date();
+    const yy = String(d.getUTCFullYear()).slice(-2);
+    const mm = d.getUTCMonth() + 1;
+    return `v${yy}.${mm}.${count}`;
+  }
 })();
 
 // ===== DISPLAY FREEZE / HIDE =====

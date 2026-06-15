@@ -421,7 +421,7 @@
           </div>
           <p class="ecp-subnote" data-ecp-actions-note>
             <a href="https://github.com/magmalabsdev/event-control-panel/releases/latest" target="_blank" rel="noopener">All platforms &amp; versions</a>
-            · macOS, Windows &amp; Linux · v26.6.7
+            · macOS, Windows &amp; Linux · <span data-ecp-app-version>v26.6.7</span>
           </p>
         </div>
       </section>
@@ -625,40 +625,62 @@
 
         function setupDownload() {
           const buttons = document.querySelectorAll("[data-ecp-download]");
-          if (!buttons.length) return;
+          const versionNote = document.querySelector("[data-ecp-app-version]");
+          if (!buttons.length && !versionNote) return;
 
-          const BASE =
-            "https://github.com/magmalabsdev/event-control-panel/releases/download/v26.6.7/";
+          // App builds carry a STATIC version stamped at build time. The landing page
+          // tracks whichever build is the latest GitHub release, so the download links
+          // and version note follow releases automatically. Falls back to a known
+          // version if the API is unreachable.
+          const REPO = "magmalabsdev/event-control-panel";
+          const FALLBACK_VER = "26.6.7";
           const RELEASES =
             "https://github.com/magmalabsdev/event-control-panel/releases/latest";
 
-          const ua = (navigator.userAgent || "").toLowerCase();
-          const platform = (navigator.platform || "").toLowerCase();
+          apply(FALLBACK_VER);
+          fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
+            headers: { Accept: "application/vnd.github+json" },
+          })
+            .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+            .then((data) => {
+              const ver = ((data && data.tag_name) || "").replace(/^v/, "");
+              if (ver) apply(ver);
+            })
+            .catch(() => {});
 
-          let href = RELEASES;
-          let label = null;
+          function apply(ver) {
+            const BASE =
+              `https://github.com/magmalabsdev/event-control-panel/releases/download/v${ver}/`;
+            const ua = (navigator.userAgent || "").toLowerCase();
+            const platform = (navigator.platform || "").toLowerCase();
 
-          if (/mac|iphone|ipad|ipod/.test(ua) || /mac/.test(platform)) {
-            // Default to Apple Silicon; Intel users can use "All platforms".
-            href = BASE + "Event.Control.Panel-26.6.7-arm64.dmg";
-            label = "Download for macOS";
-          } else if (/win/.test(ua) || /win/.test(platform)) {
-            href = BASE + "Event.Control.Panel.Setup.26.6.7.exe";
-            label = "Download for Windows";
-          } else if (/linux/.test(ua) || /linux/.test(platform)) {
-            href = BASE + "Event.Control.Panel-26.6.7.AppImage";
-            label = "Download for Linux";
-          }
+            let href = RELEASES;
+            let label = null;
 
-          buttons.forEach((btn) => {
-            btn.href = href;
-            // Only relabel the primary hero button (keeps card buttons compact).
-            if (label && btn.classList.contains("primary") && !btn.classList.contains("small")) {
-              const icon = btn.querySelector("svg");
-              btn.textContent = " " + label;
-              if (icon) btn.prepend(icon);
+            if (/mac|iphone|ipad|ipod/.test(ua) || /mac/.test(platform)) {
+              // Default to Apple Silicon; Intel users can use "All platforms".
+              href = BASE + `Event.Control.Panel-${ver}-arm64.dmg`;
+              label = "Download for macOS";
+            } else if (/win/.test(ua) || /win/.test(platform)) {
+              href = BASE + `Event.Control.Panel.Setup.${ver}.exe`;
+              label = "Download for Windows";
+            } else if (/linux/.test(ua) || /linux/.test(platform)) {
+              href = BASE + `Event.Control.Panel-${ver}.AppImage`;
+              label = "Download for Linux";
             }
-          });
+
+            if (versionNote) versionNote.textContent = "v" + ver;
+
+            buttons.forEach((btn) => {
+              btn.href = href;
+              // Only relabel the primary hero button (keeps card buttons compact).
+              if (label && btn.classList.contains("primary") && !btn.classList.contains("small")) {
+                const icon = btn.querySelector("svg");
+                btn.textContent = " " + label;
+                if (icon) btn.prepend(icon);
+              }
+            });
+          }
         }
       })();
     </script>
