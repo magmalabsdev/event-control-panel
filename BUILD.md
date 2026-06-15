@@ -19,7 +19,7 @@ npm start
 
 | Command | Output (in `dist/`) |
 | --- | --- |
-| `ADHOC_SIGN=1 npm run dist:mac -- --x64 --arm64` | per-arch `…-26.6.7.dmg`/`…-mac.zip` (Intel) + `…-arm64.dmg`/`…-arm64-mac.zip` (Apple Silicon) |
+| `ADHOC_SIGN=1 npm run dist:mac -- --x64 --arm64` | per-arch `…-<ver>.dmg`/`…-mac.zip` (Intel) + `…-arm64.dmg`/`…-arm64-mac.zip` (Apple Silicon) |
 | `npm run dist:win -- --x64` | `Event Control Panel Setup <ver>.exe` (NSIS installer — registers `.ecp` as default) + `…-win.zip` (portable) |
 | `npm run dist:linux -- --x64` | `Event Control Panel-<ver>.AppImage` (portable; `chmod +x` and run) |
 
@@ -40,8 +40,23 @@ OS: macOS from the app bundle (move to `/Applications` and launch once), Windows
 installer, Linux by AppImage desktop integration. The Windows/macOS icon is built from
 `build/icon.ico` (regenerate with `node scripts/make-ico.js` if the logo changes).
 
-The version number is **static** (`version` in `package.json`); the apps do not self-update, so bump
-it by hand per release and keep `APP_VERSION` in `app.js` in sync. Current version: **26.6.7**.
+## Versioning
+
+Two schemes, kept deliberately separate:
+
+- **Web app** (served from `main` via GitHub Pages) shows a **dynamic** version, `YY.M.<commit count>`,
+  derived at runtime from the repo's commit history (see `initVersionTag` in [app/app.js](app/app.js)).
+  Every push that redeploys the site bumps the number automatically — nothing to edit by hand.
+- **Desktop builds** carry a **static** version, the build date as `YY.M.D`, stamped at build time.
+  The `dist:*` scripts pass it to electron-builder via
+  `-c.extraMetadata.version=$(node scripts/build-version.js)`, so each packaged artifact records
+  *when it was built*. The apps don't self-update, so the number stays fixed for that build. The
+  packaged app reads it back through `app.getVersion()` over the preload bridge to show in its
+  version tag. (The `version` field in `package.json` is only the `npm start` dev fallback — builds
+  override it.)
+
+The landing page download links and version note track the **latest GitHub release** automatically,
+so publishing a new release surfaces the new build without editing `index.html`.
 
 The finished, user-facing artifacts are collected in the git-ignored **`releases/`** folder.
 
