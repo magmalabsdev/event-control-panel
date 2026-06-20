@@ -305,6 +305,47 @@
         .ecp-logo { width: 190px; }
       }
 
+      /* --- comparison table --- */
+      .ecp-compare {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+      }
+      .ecp-compare table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        min-width: 760px;
+      }
+      .ecp-compare th,
+      .ecp-compare td {
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        white-space: normal;
+      }
+      .ecp-compare thead th {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 700;
+        background: var(--surface-alt, var(--surface));
+      }
+      .ecp-compare th:first-child,
+      .ecp-compare td:first-child {
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .ecp-compare thead th.ecp-col-ecp {
+        background: color-mix(in srgb, var(--accent-500) 8%, transparent);
+      }
+      .ecp-compare tbody tr:last-child td { border-bottom: none; }
+      .ecp-compare td.is-superior {
+        background: color-mix(in srgb, var(--accent-700) 30%, transparent);
+        color: var(--accent-700);
+        font-weight: 700;
+        border-radius: 6px;
+      }
+
       /* reduced motion: skip the build-up, show the compact final state */
       @media (prefers-reduced-motion: reduce) {
         .ecp-mod, .ecp-core { display: none; }
@@ -465,6 +506,120 @@
         </div>
       </section>
 
+
+      <section class="section alt">
+        <div class="container">
+          <div class="section-header">
+            <div class="kicker">How it compares</div>
+            <h2>One free tool instead of <span class="accent">four paid ones</span></h2>
+            <p>
+              ECP overlaps with presentation/cue software, DJ software, and slide
+              presenter views - but it's the only one that bundles slides, music, and
+              intercom into a single free browser tab.
+            </p>
+          </div>
+
+          <div class="ecp-compare">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col"></th>
+                  <th scope="col" class="ecp-col-ecp">Event Control Panel</th>
+                  <th scope="col">ProPresenter 7</th>
+                  <th scope="col">QLab 5</th>
+                  <th scope="col">OBS Studio</th>
+                  <th scope="col">DJ software</th>
+                  <th scope="col">Presenter view</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Platform</th>
+                  <td class="ecp-col-ecp is-superior">Any browser</td>
+                  <td>macOS, Windows</td>
+                  <td>macOS only</td>
+                  <td>Windows, macOS, Linux</td>
+                  <td>Windows, macOS</td>
+                  <td>Native app or browser</td>
+                </tr>
+                <tr>
+                  <th scope="row">Price</th>
+                  <td class="ecp-col-ecp is-superior">Free, open source</td>
+                  <td>Free (limited) - $399, or $29/mo</td>
+                  <td>Free (playback only) - $299/license</td>
+                  <td class="is-superior">Free, open source</td>
+                  <td>Free - $299 lifetime</td>
+                  <td>Free - subscription</td>
+                </tr>
+                <tr>
+                  <th scope="row">Slides / PPTX / PDF</th>
+                  <td class="ecp-col-ecp is-superior">Yes, queue-based</td>
+                  <td class="is-superior">Yes, core feature</td>
+                  <td>No</td>
+                  <td>No</td>
+                  <td>No</td>
+                  <td class="is-superior">Yes, native format</td>
+                </tr>
+                <tr>
+                  <th scope="row">Image / video display</th>
+                  <td class="ecp-col-ecp is-superior">Yes, queue-based</td>
+                  <td class="is-superior">Yes</td>
+                  <td class="is-superior">Yes, cue-based</td>
+                  <td class="is-superior">Yes, scene-based</td>
+                  <td>Limited</td>
+                  <td>No</td>
+                </tr>
+                <tr>
+                  <th scope="row">Music queue / playback</th>
+                  <td class="ecp-col-ecp is-superior">Yes - local, YouTube, Spotify</td>
+                  <td>Limited (audio cues)</td>
+                  <td class="is-superior">Yes, cue-based</td>
+                  <td>No</td>
+                  <td class="is-superior">Yes, core feature</td>
+                  <td>No</td>
+                </tr>
+                <tr>
+                  <th scope="row">Intercom / mic routing</th>
+                  <td class="ecp-col-ecp is-superior">Yes, built in</td>
+                  <td>No</td>
+                  <td class="is-superior">Yes, via audio patch</td>
+                  <td class="is-superior">Yes, via mixer</td>
+                  <td class="is-superior">Yes, talkover</td>
+                  <td>No</td>
+                </tr>
+                <tr>
+                  <th scope="row">Second-screen output</th>
+                  <td class="ecp-col-ecp is-superior">Yes, dedicated Display Window</td>
+                  <td class="is-superior">Yes, multi-screen</td>
+                  <td class="is-superior">Yes, multi-screen</td>
+                  <td class="is-superior">Yes, scene output</td>
+                  <td>No</td>
+                  <td class="is-superior">Yes, presenter view</td>
+                </tr>
+                <tr>
+                  <th scope="row">Show file portability</th>
+                  <td class="ecp-col-ecp is-superior">Single self-contained file, embedded media</td>
+                  <td>Yes, references external files</td>
+                  <td>Yes, references external files</td>
+                  <td>Yes, references external files</td>
+                  <td>Yes, references external files</td>
+                  <td class="is-superior">Yes, single file</td>
+                </tr>
+                <tr>
+                  <th scope="row">Streaming output</th>
+                  <td class="ecp-col-ecp">No</td>
+                  <td class="is-superior">Yes, built in</td>
+                  <td>No</td>
+                  <td class="is-superior">Yes, core feature</td>
+                  <td>Some, via plugins</td>
+                  <td>No</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <section class="section">
         <div class="container">
           <div class="section-header">
@@ -511,6 +666,7 @@
           </div>
         </div>
       </section>
+
     </main>
 
     <footer class="site-footer" data-site-footer></footer>
