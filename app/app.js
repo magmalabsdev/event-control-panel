@@ -3105,6 +3105,10 @@ function updateDisplayControlButtons() {
     if (!document.body.classList.contains('icons-mode'))
       btn.textContent = hidden ? 'Show' : 'Hide';
   });
+  // Mirror the blacked-out display: overlay "Display hidden" on the operator mirrors.
+  [mediaMirrorContent, document.getElementById('cpMediaMirrorContent')].forEach(el => {
+    if (el) el.classList.toggle('display-hidden', hidden);
+  });
 }
 
 function toggleDisplayFreeze() {

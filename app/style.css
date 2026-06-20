@@ -566,6 +566,14 @@ body.light-mode .queue-next-btn.queued{background:#7055e5;border-color:#9070ff;c
 .media-mirror.mirror-unsync h4{color:#e88}
 body.light-mode .mirror-unsync-warning{background:rgba(180,40,40,.08);border-color:rgba(180,40,40,.3);color:#b33}
 body.light-mode .media-mirror.mirror-unsync{border-color:#c44;box-shadow:0 0 0 2px rgba(200,60,60,.2)}
+/* When the display is blacked out (Hide), overlay the mirror to match — so the operator
+   sees the audience's black screen instead of the still-running media underneath. */
+.mirror-content.display-hidden,.cp-mirror-content-mini.display-hidden{position:relative}
+.mirror-content.display-hidden::after,.cp-mirror-content-mini.display-hidden::after{
+  content:'Display hidden';position:absolute;inset:0;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  background:#000;color:#888;font-weight:600;letter-spacing:.03em}
+.cp-mirror-content-mini.display-hidden::after{font-size:.7rem}
 
 /* ===== FA ICON UTILITY ===== */
 /* Inline SVG icon via CSS mask — color follows currentColor of parent button */

@@ -86,3 +86,23 @@ The Announce page and Control Panel share intercom settings and the clock widget
 | Google Slides | Presentation embed (must be published to the web) |
 | Screen share | Live screen, window, or tab feed (`getDisplayMedia`) |
 | Live camera | Live webcam feed (`getUserMedia`) |
+
+---
+
+## How It Compares
+
+ECP overlaps with three categories of dedicated tools — presentation/cue software, DJ/music software, and slide presenter views — but is the only one that bundles slides, music, and intercom into a single browser tab.
+
+| | **Event Control Panel** | [ProPresenter 7](https://renewedvision.com/propresenter/) | [QLab 5](https://qlab.app/) | [OBS Studio](https://obsproject.com/) | DJ software ([VirtualDJ](https://www.virtualdj.com/)/[Mixxx](https://mixxx.org/)) | Presenter view (PowerPoint/Keynote/Slides) |
+|---|---|---|---|---|---|---|
+| Platform | Any browser | macOS, Windows | macOS only | Windows, macOS, Linux | Windows, macOS (+Linux for Mixxx) | Native app or browser |
+| Price | Free, open source | Free (limited) to $399 perpetual, or $29/mo | Free (playback only) to $299/license (Audio/Video/Lighting) | Free, open source | Free (Mixxx) to $299 lifetime (VirtualDJ Pro Infinity) | Free–Microsoft 365/Apple/Google subscription |
+| Slides / PPTX / PDF | Yes — each slide/page becomes a queue item | Yes, core feature | No (cue-based, not slide-native) | No | No | Yes — native format |
+| Image / video display | Yes, queue-based | Yes | Yes, cue-based | Yes, scene-based (sources, not a queue) | Limited (visuals plugins only) | No |
+| Music queue / playback | Yes (local files, YouTube, Spotify) | Limited (audio cues) | Yes, cue-based audio playback | No | Yes, core feature | No |
+| Live intercom / mic routing | Yes, built in | No | Yes, via audio patch | Yes, via audio mixer | Yes, mic input/talkover | No |
+| Second-screen / projector output | Yes, dedicated Display Window | Yes, multi-screen output | Yes, multi-screen output | Yes, via scene output | No (typically single output) | Yes, presenter view + audience screen |
+| Show/session file portability | Yes — single self-contained `.ecp` file with embedded media | Yes — `.pro` playlists/libraries | Yes — `.qlab` workspace files | Yes — `.json` scene collections (sources reference external files) | Yes — playlists/crates (reference external files) | Yes — `.pptx`/`.key`/Slides file |
+| Streaming output | No | Yes, built in | No | Yes, core feature | Some (via plugins) | No |
+
+
