@@ -346,6 +346,180 @@
         border-radius: 6px;
       }
 
+      /* --- feature highlight rows --- */
+      .ecp-features { display: grid; gap: 46px; }
+      .ecp-feature { display: grid; gap: 22px; align-items: center; }
+      .ecp-feature-text .ecp-ic {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: linear-gradient(180deg, var(--accent-50), #ffffff);
+        border: 1px solid var(--accent-100);
+        color: var(--accent-700);
+        margin-bottom: 12px;
+      }
+      .ecp-feature-text .ecp-ic svg { width: 22px; height: 22px; }
+      .ecp-feature-text h3 { margin: 0 0 8px; font-size: 1.25rem; letter-spacing: -0.02em; }
+      .ecp-feature-text p { margin: 0; }
+      @media (min-width: 760px) {
+        .ecp-features { gap: 72px; }
+        .ecp-feature { grid-template-columns: 1fr 1fr; gap: 48px; }
+        .ecp-feature.reverse .ecp-feature-art { order: -1; }
+      }
+
+      /* mockups mirror the real (dark) app UI */
+      .ecp-feature-art {
+        --m-bg: #101010;
+        --m-panel: #161616;
+        --m-nav: #0a0a0a;
+        --m-purple: #7055e5;
+        --m-green: #21a884;
+        --m-red: #d44;
+        --m-text: #ededed;
+        --m-muted: #8a8a8a;
+        --m-border: #2c2c2c;
+        background: var(--m-bg);
+        border: 1px solid var(--m-border);
+        border-radius: 16px;
+        padding: 12px;
+        min-height: 188px;
+        color: var(--m-text);
+        font-size: 12px;
+        box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 10px;
+      }
+      .ecp-feature-art .ecp-mlabel {
+        font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+        text-transform: uppercase; color: var(--m-muted); margin-bottom: 7px;
+      }
+
+      /* app window: top tab nav */
+      .ecp-app { display: grid; gap: 10px; }
+      .ecp-app-nav {
+        display: flex; gap: 2px; padding: 4px;
+        background: var(--m-nav); border: 1px solid var(--m-border); border-radius: 10px;
+      }
+      .ecp-app-nav span {
+        flex: 1; text-align: center; padding: 6px 4px; border-radius: 7px;
+        font-size: 10px; font-weight: 700; color: var(--m-muted); white-space: nowrap;
+      }
+      .ecp-app-nav span.on { background: var(--m-purple); color: #fff; }
+
+      /* panel + multi-region body */
+      .ecp-mpanel { background: var(--m-panel); border: 1px solid var(--m-border); border-radius: 10px; padding: 10px; }
+      .ecp-app-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+      .ecp-app-split { display: grid; grid-template-columns: 1.15fr 1fr; gap: 8px; }
+
+      /* screen / media mirror (16:9, near-black) */
+      .ecp-screen {
+        aspect-ratio: 16 / 9; border-radius: 8px; background: #070707;
+        border: 1px solid #242424; display: grid; place-items: center;
+        color: #4d4d4d; font-size: 11px; overflow: hidden; position: relative;
+      }
+      .ecp-screen .ecp-eq { width: 60%; }
+
+      /* format chips */
+      .ecp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+      .ecp-chip {
+        font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px;
+        background: #1f1f1f; border: 1px solid #3a3a3a; color: #cfcfcf;
+      }
+
+      /* display-window output (announce) */
+      .ecp-display {
+        aspect-ratio: 16 / 9; border-radius: 8px; background: #000;
+        border: 1px solid #1e1e1e; position: relative; overflow: hidden;
+        display: grid; place-items: center;
+      }
+      .ecp-feature-art .ecp-display .ecp-timer { color: #444; font-size: 30px; height: auto; }
+      .ecp-announce-bar {
+        position: absolute; left: 0; right: 0; bottom: 0;
+        padding: 9px 14px; text-align: center; font-weight: 700; font-size: 13px;
+        color: #fff; background: rgba(112, 85, 229, 0.92);
+      }
+
+      /* queue list (audio / breakpoints) */
+      .ecp-queue { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+      .ecp-queue li {
+        position: relative; padding: 10px 11px; border-radius: 8px;
+        background: #1a1a1a; border: 1px solid transparent; color: #cfcfcf;
+      }
+      .ecp-queue li.now { background: #351466; border-color: var(--m-purple); color: #fff; font-weight: 700; }
+      .ecp-queue li.bp {
+        border-left: 3px solid var(--m-red); padding-left: 9px;
+        background: rgba(204, 60, 60, 0.08);
+      }
+      .ecp-bp-tag {
+        float: right; font-size: 9px; font-weight: 800; letter-spacing: 0.04em;
+        padding: 2px 6px; border-radius: 6px; background: #c44; color: #fff;
+      }
+
+      /* soundboard pads (one playing = green) - scoped so the hero stays untouched */
+      .ecp-feature-art .ecp-pads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .ecp-feature-art .ecp-pads i {
+        height: 44px; border-radius: 8px; background: #2c2c2c; border: 1px solid #4a4a4a;
+      }
+      .ecp-feature-art .ecp-pads i.play { background: var(--m-green); border-color: #2f9; }
+
+      /* session panel: preset field + export buttons + .ecp file */
+      .ecp-field {
+        background: #202020; border: 1px solid #3a3a3a; border-radius: 8px;
+        padding: 7px 10px; color: #cfcfcf; display: flex; justify-content: space-between;
+      }
+      .ecp-field span { color: var(--m-muted); }
+      .ecp-btn-row { display: flex; gap: 8px; margin: 10px 0; }
+      .ecp-ui-btn {
+        flex: 1; text-align: center; padding: 10px 6px; border-radius: 8px;
+        background: #2d2d2d; border: 1px solid #555; color: #ededed; font-weight: 700; font-size: 11px;
+      }
+      .ecp-file {
+        display: flex; gap: 14px; align-items: center;
+        background: var(--m-panel); border: 1px solid var(--m-border); border-radius: 10px; padding: 14px;
+      }
+      .ecp-file-icon {
+        width: 48px; height: 58px; border-radius: 7px; flex: none;
+        background: linear-gradient(180deg, #7c5cf0, #4a32c0); color: #fff;
+        display: grid; place-items: center; font-size: 12px; font-weight: 800;
+      }
+      .ecp-file-name { font-weight: 700; font-size: 14px; margin-bottom: 5px; color: #fff; }
+      .ecp-file small { color: var(--m-muted); }
+
+      /* repo card (open source) */
+      .ecp-repo { background: var(--m-panel); border: 1px solid var(--m-border); border-radius: 10px; padding: 16px; display: grid; gap: 12px; }
+      .ecp-repo-head { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; color: #fff; }
+      .ecp-repo-head svg { width: 18px; height: 18px; flex: none; }
+      .ecp-repo-desc { margin: 0; color: #b6b6b6; font-size: 12px; line-height: 1.5; }
+      .ecp-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+      .ecp-badge { font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: #1f1f1f; border: 1px solid #3a3a3a; color: #cfcfcf; }
+      .ecp-repo-meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11px; color: var(--m-muted); padding-top: 2px; border-top: 1px solid var(--m-border); margin-top: 2px; }
+      .ecp-repo-meta b { color: #cfcfcf; font-weight: 700; }
+      .ecp-repo-meta .dot { display: inline-block; width: 9px; height: 9px; border-radius: 999px; background: var(--m-purple); vertical-align: -1px; margin-right: 5px; }
+
+      /* mockups are static stills - no idle looping animation */
+      .ecp-feature-art .ecp-eq span,
+      .ecp-feature-art .ecp-wave span,
+      .ecp-feature-art .ecp-timer .colon { animation: none; }
+      .ecp-feature-art .ecp-timer { color: var(--m-text); height: auto; font-size: 22px; }
+      .ecp-feature-art .ecp-eq { height: 38px; }
+      .ecp-feature-art .ecp-eq span:nth-child(1) { height: 55%; }
+      .ecp-feature-art .ecp-eq span:nth-child(2) { height: 88%; }
+      .ecp-feature-art .ecp-eq span:nth-child(3) { height: 40%; }
+      .ecp-feature-art .ecp-eq span:nth-child(4) { height: 96%; }
+      .ecp-feature-art .ecp-eq span:nth-child(5) { height: 66%; }
+      .ecp-feature-art .ecp-wave { height: 34px; }
+      .ecp-feature-art .ecp-wave span { height: 9px; transform: none; opacity: 1; }
+      .ecp-feature-art .ecp-wave span:nth-child(3n+2) { height: 20px; }
+      .ecp-feature-art .ecp-wave span:nth-child(3n+3) { height: 13px; }
+      .ecp-feature-art .ecp-wave span:nth-child(4n+1) { height: 28px; }
+
+      /* the last four mockups run taller to match the first three */
+      .ecp-features .ecp-feature:nth-child(n + 4) .ecp-feature-art { min-height: 252px; }
+
       /* reduced motion: skip the build-up, show the compact final state */
       @media (prefers-reduced-motion: reduce) {
         .ecp-mod, .ecp-core { display: none; }
@@ -354,6 +528,7 @@
         .ecp-actions, .ecp-subnote { opacity: 1; transform: none; }
         .ecp-caret { display: none; }
         .ecp-eq span, .ecp-wave span { animation: none; }
+        .ecp-timer .colon { animation: none; }
       }
     </style>
   </head>
@@ -478,29 +653,204 @@
             </p>
           </div>
 
-          <div class="grid cols-3">
-            <div class="card">
-              <h3>Audio</h3>
-              <p class="muted">
-                Music queue with local files, YouTube, and Spotify, plus a shared
-                soundboard, crossfade, loop modes, breakpoints, and starred one-click
-                sounds.
-              </p>
+          <div class="ecp-features">
+            <!-- 1 · Single panel control -->
+            <div class="ecp-feature">
+              <div class="ecp-feature-text">
+                <span class="ecp-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+                <h3>Single panel control</h3>
+                <p class="muted">
+                  Sound, screens, and the mic on one no-scroll screen, built for live
+                  operation - so you never tab-hop or alt-tab in the middle of a show.
+                </p>
+              </div>
+              <div class="ecp-feature-art">
+                <div class="ecp-app">
+                  <div class="ecp-app-nav">
+                    <span>Announce</span>
+                    <span>Audio</span>
+                    <span class="on">Control Panel</span>
+                    <span>Visuals</span>
+                    <span>Settings</span>
+                  </div>
+                  <div class="ecp-app-grid3">
+                    <div class="ecp-mpanel">
+                      <div class="ecp-mlabel">Music</div>
+                      <div class="ecp-eq"><span></span><span></span><span></span><span></span><span></span></div>
+                    </div>
+                    <div class="ecp-mpanel">
+                      <div class="ecp-mlabel">Visuals</div>
+                      <div class="ecp-screen"></div>
+                    </div>
+                    <div class="ecp-mpanel">
+                      <div class="ecp-mlabel">Clock</div>
+                      <div class="ecp-timer">02<span class="colon">:</span>30</div>
+                    </div>
+                  </div>
+                  <div class="ecp-mpanel">
+                    <div class="ecp-mlabel">Intercom &amp; mic</div>
+                    <div class="ecp-wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="card">
-              <h3>Visuals</h3>
-              <p class="muted">
-                A presenter view that drives a separate Display Window - images,
-                video, PDFs, PowerPoint, and web embeds - with mirror preview, slide
-                notes, Freeze, and Hide.
-              </p>
+
+            <!-- 2 · Supported media -->
+            <div class="ecp-feature reverse">
+              <div class="ecp-feature-text">
+                <span class="ecp-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>
+                <h3>Supported media</h3>
+                <p class="muted">
+                  Drive a separate Display Window with images, video, PDFs, PowerPoint,
+                  and web embeds - with mirror preview, slide notes, Freeze, and Hide.
+                </p>
+              </div>
+              <div class="ecp-feature-art">
+                <div class="ecp-mlabel">Presenter &middot; Display Window</div>
+                <div class="ecp-screen">Now showing slide 4</div>
+                <div class="ecp-chips">
+                  <span class="ecp-chip">PNG</span>
+                  <span class="ecp-chip">JPG</span>
+                  <span class="ecp-chip">MP4</span>
+                  <span class="ecp-chip">PDF</span>
+                  <span class="ecp-chip">PPTX</span>
+                  <span class="ecp-chip">Web</span>
+                </div>
+              </div>
             </div>
-            <div class="card">
-              <h3>Intercom &amp; Announce</h3>
-              <p class="muted">
-                Live or recorded mic routing with auto music ducking, soundboard cues,
-                a shared clock/stopwatch/timer, and typed on-screen announcements.
-              </p>
+
+            <!-- 3 · Announce page -->
+            <div class="ecp-feature">
+              <div class="ecp-feature-text">
+                <span class="ecp-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4M8 21h8"/></svg></span>
+                <h3>Announce page</h3>
+                <p class="muted">
+                  Type a message straight onto the big screen, or route live and recorded
+                  mic with auto music ducking and a shared clock, stopwatch, and timer.
+                </p>
+              </div>
+              <div class="ecp-feature-art">
+                <div class="ecp-mlabel">Display Window output</div>
+                <div class="ecp-display">
+                  <div class="ecp-timer">02<span class="colon">:</span>30</div>
+                  <div class="ecp-announce-bar">Doors open in 5 minutes</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4 · Full music / soundboard -->
+            <div class="ecp-feature reverse">
+              <div class="ecp-feature-text">
+                <span class="ecp-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></span>
+                <h3>Full music &amp; soundboard</h3>
+                <p class="muted">
+                  A music queue spanning local files, YouTube, and Spotify, plus a shared
+                  soundboard, crossfade, loop modes, and starred one-click sounds.
+                </p>
+              </div>
+              <div class="ecp-feature-art">
+                <div class="ecp-app-split">
+                  <div class="ecp-mpanel">
+                    <div class="ecp-mlabel">Music queue</div>
+                    <ul class="ecp-queue">
+                      <li class="now">Opening Theme</li>
+                      <li>Interlude &middot; YouTube</li>
+                      <li>Walk-on &middot; Spotify</li>
+                      <li>Outro &middot; Local</li>
+                    </ul>
+                  </div>
+                  <div class="ecp-mpanel">
+                    <div class="ecp-mlabel">Soundboard</div>
+                    <div class="ecp-pads"><i></i><i class="play"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5 · Breakpoints -->
+            <div class="ecp-feature">
+              <div class="ecp-feature-text">
+                <span class="ecp-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V4M4 4h12l-2.5 4L16 12H4"/></svg></span>
+                <h3>Breakpoints</h3>
+                <p class="muted">
+                  Drop breakpoints on event defining slides to stop autoplay and prevent accidentally revealing important information early.
+                </p>
+              </div>
+              <div class="ecp-feature-art">
+                <div class="ecp-mpanel">
+                  <div class="ecp-mlabel">Queue &middot; autoplay stops at breakpoints</div>
+                  <ul class="ecp-queue">
+                    <li class="now">Walk-in playlist</li>
+                    <li class="bp">Welcome speech<span class="ecp-bp-tag">BP</span></li>
+                    <li>Award reel</li>
+                    <li class="bp">Closing remarks<span class="ecp-bp-tag">BP</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6 · Exportable sessions -->
+            <div class="ecp-feature reverse">
+              <div class="ecp-feature-text">
+                <span class="ecp-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span>
+                <h3>Exportable sessions</h3>
+                <p class="muted">
+                  Save your entire show - queues, soundboard, media, settings, and notes -
+                  into a single portable <code>.ecp</code> file you can hand off or reopen
+                  anywhere.
+                </p>
+              </div>
+              <div class="ecp-feature-art">
+                <div class="ecp-mpanel">
+                  <div class="ecp-mlabel">Session</div>
+                  <div class="ecp-field">Loaded preset <span>show-night.ecp &#9662;</span></div>
+                  <div class="ecp-btn-row">
+                    <span class="ecp-ui-btn">Export preset</span>
+                    <span class="ecp-ui-btn">Export all</span>
+                  </div>
+                  <div class="ecp-file">
+                    <div class="ecp-file-icon">.ecp</div>
+                    <div>
+                      <div class="ecp-file-name">show-night.ecp</div>
+                      <small>Queues &middot; media &middot; settings &middot; notes</small>
+                    </div>
+                  </div>
+                  <div class="ecp-field" style="margin-top: 10px">Import <span>.ecp &middot; .json</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 7 · Free &amp; open source -->
+            <div class="ecp-feature">
+              <div class="ecp-feature-text">
+                <span class="ecp-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.66-.22.66-.48 0-.24-.01-.87-.01-1.7-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85 0 1.34-.01 2.42-.01 2.75 0 .27.16.58.67.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg></span>
+                <h3>Free &amp; open source</h3>
+                <p class="muted">
+                  Built and maintained by Magma Labs. No accounts, no server, no fees -
+                  browse the code, file issues, or grab a release on GitHub.
+                </p>
+              </div>
+              <div class="ecp-feature-art">
+                <div class="ecp-repo">
+                  <div class="ecp-repo-head">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.09.66-.22.66-.48 0-.24-.01-.87-.01-1.7-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02.8-.22 1.65-.33 2.5-.33.85 0 1.7.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85 0 1.34-.01 2.42-.01 2.75 0 .27.16.58.67.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg>
+                    magmalabsdev/event-control-panel
+                  </div>
+                  <p class="ecp-repo-desc">
+                    Audio, visuals &amp; intercom unified into one browser-based control panel for live events.
+                  </p>
+                  <div class="ecp-badges">
+                    <span class="ecp-badge">&starf; Star</span>
+                    <span class="ecp-badge">MIT License</span>
+                    <span class="ecp-badge">Free forever</span>
+                  </div>
+                  <div class="ecp-repo-meta">
+                    <span><span class="dot"></span>JavaScript</span>
+                    <span><b>Issues</b> welcome</span>
+                    <span><b>Releases</b> &middot; macOS, Windows, Linux</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -632,37 +982,10 @@
             </p>
           </div>
 
-          <div class="grid cols-3">
-            <div class="card">
-              <h3>Desktop app</h3>
-              <p class="muted">
-                Native macOS, Windows, and Linux builds with microphone access, offline
-                PDF/PPTX engines, and <code>.ecp</code> file association.
-              </p>
-              <div class="inline-links">
-                <a class="btn small primary" data-ecp-download href="https://github.com/magmalabsdev/event-control-panel/releases/latest" target="_blank" rel="noopener">Download App</a>
-              </div>
-            </div>
-            <div class="card">
-              <h3>Web app</h3>
-              <p class="muted">
-                The same panel, instantly, at
-                <code>ecp.magmalabs.dev/app</code> - nothing to install for quick events.
-              </p>
-              <div class="inline-links">
-                <a class="btn small secondary" href="/app/" rel="noopener">Open in browser</a>
-              </div>
-            </div>
-            <div class="card">
-              <h3>Open source</h3>
-              <p class="muted">
-                Built and maintained by Magma Labs. Browse the code, file issues, or
-                grab a release on GitHub.
-              </p>
-              <div class="inline-links">
-                <a class="btn small secondary" href="https://github.com/magmalabsdev/event-control-panel" target="_blank" rel="noopener">View on GitHub</a>
-              </div>
-            </div>
+          <div class="inline-links" style="justify-content: center">
+            <a class="btn primary" data-ecp-download href="https://github.com/magmalabsdev/event-control-panel/releases/latest" target="_blank" rel="noopener">Download App</a>
+            <a class="btn secondary" href="/app/" rel="noopener">Open in browser</a>
+            <a class="btn secondary" href="https://github.com/magmalabsdev/event-control-panel" target="_blank" rel="noopener">View on GitHub</a>
           </div>
         </div>
       </section>
