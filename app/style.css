@@ -99,6 +99,20 @@ body{margin:0;background:#101010;color:#eee}
 .app-banner-button:hover,.by-magmalabs-banner:hover,.kofi-button:hover{background:#1f1f1f;border-color:#444;transform:translateY(-1px)}
 .app-banner-button img,.by-magmalabs-banner img,.kofi-button img{display:block;width:100%;height:100%;object-fit:contain}
 
+/* ===== IMMEDIATE TOOLTIP ===== */
+.app-tooltip{position:fixed;z-index:3000;pointer-events:none;max-width:280px;padding:6px 10px;background:#000;color:#f0f0f0;border:1px solid #4a4a4a;border-radius:8px;font-size:.78rem;line-height:1.35;white-space:pre-line;box-shadow:0 6px 22px rgba(0,0,0,.45);opacity:0;transform:translateY(2px);transition:opacity .05s ease,transform .05s ease}
+.app-tooltip.visible{opacity:1;transform:none}
+body.light-mode .app-tooltip{background:#1c1c1c;color:#f5f5f5;border-color:#333}
+
+/* ===== MODAL (e.g. slide-number prompt for deck replace) ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal-box{background:#161616;border:1px solid #3a3a3a;border-radius:16px;padding:20px;max-width:380px;width:90%;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.modal-box label{font-size:.9rem;color:#ccc;line-height:1.4}
+.modal-box input{width:100%;margin:0}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px}
+body.light-mode .modal-box{background:#f4f4f6;border-color:#c0c0c6}
+body.light-mode .modal-box label{color:#333}
+
 /* ===== COMMON COMPONENTS ===== */
 .ecp-card{flex:1 1 620px;min-width:320px;margin-bottom:0;padding:18px;background:#121212;border:1px solid #292929;border-radius:18px}
 .ecp-card .note{margin:10px 0 0;font-size:.9rem;color:#999;line-height:1.4}
@@ -129,8 +143,11 @@ li .detail-group{display:flex;flex-direction:column;gap:4px;min-width:0}
 li .item-info{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 li .item-info span{font-size:.95rem;color:#ccc}
 li .item-actions{display:flex;gap:8px;align-items:center}
-li .item-actions button{padding:6px 10px;font-size:.9rem;border-radius:10px;border:1px solid #555;background:#2e2e2e;color:#eee}
-li .item-actions button:hover{background:#3a3a3a;border-color:#888}
+li .item-actions button,li .item-settings button{padding:6px 10px;font-size:.9rem;border-radius:10px;border:1px solid #555;background:#2e2e2e;color:#eee}
+li .item-actions button:hover,li .item-settings button:hover{background:#3a3a3a;border-color:#888}
+li .item-settings{position:relative;z-index:1;display:none;flex-wrap:wrap;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #333}
+li.settings-open .item-settings{display:flex}
+.hidden-file-input{display:none}
 li .skip-toggle{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:#ccc;cursor:pointer;margin-right:8px}
 li .skip-toggle input{width:16px;height:16px;margin:0}
 li.skipped{opacity:.78}
@@ -379,8 +396,8 @@ body.light-mode li:hover{background:rgba(0,0,0,.04);border-color:#c8c8cc}
 body.light-mode li.active{background:#ede0ff;border-color:#7055e5;box-shadow:inset 0 0 0 1px rgba(112,85,229,.25)}
 body.light-mode li .progress-underlay{background:rgba(0,0,0,.06)}
 body.light-mode li .item-info span{color:#333}
-body.light-mode li .item-actions button{background:#eaeaee;border-color:#c0c0c6;color:#111}
-body.light-mode li .item-actions button:hover{background:#d8d8dd;border-color:#888}
+body.light-mode li .item-actions button,body.light-mode li .item-settings button{background:#eaeaee;border-color:#c0c0c6;color:#111}
+body.light-mode li .item-actions button:hover,body.light-mode li .item-settings button:hover{background:#d8d8dd;border-color:#888}
 body.light-mode li .skip-toggle{color:#444}
 body.light-mode li.skipped .item-info span{color:#999}
 body.light-mode .mode-button span{background:#e0e0e4;border-color:#b8b8be;color:#111}
@@ -428,8 +445,8 @@ body.high-contrast .soundboard-button:hover{background:#e8e8ec}
 body.high-contrast .mode-button span{background:#d8d8dc;color:#111;border-color:#888}
 body.high-contrast .mode-button:hover span{background:#e8e8ec}
 body.high-contrast .clock-mode-tab.active{background:#7055e5 !important;color:#fff !important;border-color:#9070ff !important}
-body.high-contrast li .item-actions button{background:#d8d8dc;color:#111;border-color:#888}
-body.high-contrast li .item-actions button:hover{background:#e8e8ec}
+body.high-contrast li .item-actions button,body.high-contrast li .item-settings button{background:#d8d8dc;color:#111;border-color:#888}
+body.high-contrast li .item-actions button:hover,body.high-contrast li .item-settings button:hover{background:#e8e8ec}
 body.high-contrast button.action-button.inactive{background:#888;color:#111;border-color:#aaa}
 /* Light bg + HC → buttons become dark (logo banner exempted) */
 body.light-mode.high-contrast button:not([class*="active-"]):not(.control-unavailable):not(.app-banner-button){background:#1e1e22;color:#eee;border-color:#777}
@@ -439,8 +456,8 @@ body.light-mode.high-contrast .soundboard-button:hover{background:#2e2e34}
 body.light-mode.high-contrast .mode-button span{background:#1e1e22;color:#eee;border-color:#777}
 body.light-mode.high-contrast .mode-button:hover span{background:#2e2e34}
 body.light-mode.high-contrast .clock-mode-tab.active{background:#7055e5 !important;color:#fff !important;border-color:#9070ff !important}
-body.light-mode.high-contrast li .item-actions button{background:#1e1e22;color:#eee;border-color:#777}
-body.light-mode.high-contrast li .item-actions button:hover{background:#2e2e34}
+body.light-mode.high-contrast li .item-actions button,body.light-mode.high-contrast li .item-settings button{background:#1e1e22;color:#eee;border-color:#777}
+body.light-mode.high-contrast li .item-actions button:hover,body.light-mode.high-contrast li .item-settings button:hover{background:#2e2e34}
 body.light-mode.high-contrast button.action-button.inactive{background:#666;color:#eee;border-color:#555}
 
 /* ===== REALISTIC BUTTON MODE ===== */
@@ -579,7 +596,9 @@ body.light-mode .media-mirror.mirror-unsync{border-color:#c44;box-shadow:0 0 0 2
 /* Inline SVG icon via CSS mask — color follows currentColor of parent button */
 .fa-icon{display:inline-block;width:.85em;height:.85em;background:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain;vertical-align:-.1em;pointer-events:none;flex-shrink:0}
 /* Icon-only compact buttons (up/down/delete in list, breakpoint, soundboard actions) */
-li .item-actions button:has(.fa-icon){padding:5px 8px;min-width:28px}
+/* inline-flex centering keeps the mask icon (and any label) truly centered — a
+   plain block button lets vertical-align nudge the icon off-center vertically. */
+li .item-actions button:has(.fa-icon),li .item-settings button:has(.fa-icon){padding:5px 8px;min-width:28px;display:inline-flex;align-items:center;justify-content:center;gap:4px}
 
 /* ===== BREAKPOINTS ===== */
 li.has-breakpoint{border-left:3px solid #d44 !important;padding-left:17px;background:rgba(200,50,50,.05)}
@@ -729,11 +748,13 @@ body.light-mode button.sb-cp-btn.sb-playing{background:#2a8 !important;border-co
 .sb-norm-label.sb-norm-neg{color:#e55;opacity:.85}
 
 /* ===== COMPLEXITY MODE (Basic / Advanced) ===== */
-/* Basic mode: hide all advanced-marked controls */
-body:not(.advanced-mode) .adv                { display: none !important; }
-body:not(.advanced-mode) .breakpoint-btn     { display: none !important; }
-body:not(.advanced-mode) .queue-next-btn     { display: none !important; }
-body:not(.advanced-mode) .skip-toggle        { display: none !important; }
+/* Basic mode: hide all advanced-marked controls.
+   Per-item skip/queue/breakpoint are gated only in the MUSIC queue — the slides
+   queue keeps them in the bar at all times (the gear panel holds the rest). */
+body:not(.advanced-mode) .adv                          { display: none !important; }
+body:not(.advanced-mode) #musicQueue .breakpoint-btn   { display: none !important; }
+body:not(.advanced-mode) #musicQueue .queue-next-btn   { display: none !important; }
+body:not(.advanced-mode) #musicQueue .skip-toggle      { display: none !important; }
 
 /* Advanced mode: deep-blue card highlight on advanced controls */
 body.advanced-mode .adv {

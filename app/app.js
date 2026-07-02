@@ -209,6 +209,7 @@ let mediaLoopMode = 'off';
 let mediaProgressInterval = null;
 let queuedMediaNext = null;
 let queuedMusicNext = null;
+let pendingSlideAction = null;
 
 // Elements
 const musicFiles = document.getElementById('musicFiles');
@@ -229,6 +230,7 @@ const presetSelect = document.getElementById('presetSelect');
 const sessionNotes = document.getElementById('sessionNotes');
 
 const mediaFiles = document.getElementById('mediaFiles');
+const mediaSlideAction = document.getElementById('mediaSlideAction');
 const mediaQueue = document.getElementById('mediaQueue');
 const currentMediaEl = document.getElementById('currentMedia');
 const mediaPlay = document.getElementById('mediaPlay');
@@ -1994,42 +1996,126 @@ async function extractPptxSlides(file){
   return convertPptxFromFile(file, 1, 'jpeg');
 }
 
-async function processMediaFile(file){
+// Convert a single uploaded file to its media item(s), without mutating `media` or rendering.
+async function convertFileToMediaItems(file){
   const lower = file.name.toLowerCase();
+  if (lower.endsWith('.pdf')){
+    setStatus(`Loading PDF: ${file.name}`);
+    const pages = await convertPdfFromFile(file, 1.5, 'jpeg');
+    if (pages.length) return pages;
+    console.warn('PDF conversion produced no pages for', file.name);
+    return [{name:file.name,type:'image/pdf',url:'',source:'pdf',pageNumber:0,pages:0,notes:''}];
+  }
+  if (lower.endsWith('.pptx')){
+    setStatus(`Loading PPTX: ${file.name}`);
+    const slides = await convertPptxFromFile(file, 1, 'jpeg');
+    if (slides.length) return slides;
+    console.warn('PPTX conversion produced no slides for', file.name);
+    return [{name:file.name,type:'image/pptx',url:'',source:'pptx',pageNumber:0,pages:0,notes:''}];
+  }
+  const url = URL.createObjectURL(file);
+  const item = {name:file.name,url,type:file.type,file:file,durationFormatted:'Loading...',pages:1,notes:''};
+  loadFileMetadata(item, renderQueues);
+  return [item];
+}
+
+async function processMediaFile(file){
   try {
-    if (lower.endsWith('.pdf')){
-      setStatus(`Loading PDF: ${file.name}`);
-      const pages = await convertPdfFromFile(file, 1.5, 'jpeg');
-      if (pages.length){
-        media.push(...pages);
-      } else {
-        console.warn('PDF conversion produced no pages for', file.name);
-        media.push({name:file.name,type:'image/pdf',url:'',source:'pdf',pageNumber:0,pages:0,notes:''});
-      }
-      renderQueues();
-    } else if (lower.endsWith('.pptx')){
-      setStatus(`Loading PPTX: ${file.name}`);
-      const slides = await convertPptxFromFile(file, 1, 'jpeg');
-      if (slides.length){
-        media.push(...slides);
-      } else {
-        console.warn('PPTX conversion produced no slides for', file.name);
-        media.push({name:file.name,type:'image/pptx',url:'',source:'pptx',pageNumber:0,pages:0,notes:''});
-      }
-      renderQueues();
-    } else {
-      const url = URL.createObjectURL(file);
-      const item = {name:file.name,url,type:file.type,file:file,durationFormatted:'Loading...',pages:1,notes:''};
-      media.push(item);
-      loadFileMetadata(item, renderQueues);
-      renderQueues();
-    }
+    const items = await convertFileToMediaItems(file);
+    media.push(...items);
+    renderQueues();
   } catch (error) {
     console.error('Media processing failed for', file.name, error);
     setStatus(`Failed to load ${file.name}: ${error.message || 'unknown error'}`);
     const fallback = {name:`${file.name} (failed)`,url:'',type:'error',source:'error',pageNumber:0,pages:0,notes:''};
     media.push(fallback);
     renderQueues();
+  } finally {
+    setTimeout(()=> setStatus(''), 4000);
+  }
+}
+
+// Insert one or more uploaded files' media item(s) starting at atIndex (used by the per-slide "Insert before/after" actions).
+async function insertMediaFilesAt(files, atIndex){
+  let insertPos = atIndex;
+  for (const file of files){
+    try {
+      const items = await convertFileToMediaItems(file);
+      media.splice(insertPos, 0, ...items);
+      if (currentMediaIndex >= insertPos) currentMediaIndex += items.length;
+      insertPos += items.length;
+    } catch (error) {
+      console.error('Insert failed for', file.name, error);
+      setStatus(`Failed to insert ${file.name}: ${error.message || 'unknown error'}`);
+      const fallback = {name:`${file.name} (failed)`,url:'',type:'error',source:'error',pageNumber:0,pages:0,notes:''};
+      media.splice(insertPos, 0, fallback);
+      if (currentMediaIndex >= insertPos) currentMediaIndex += 1;
+      insertPos += 1;
+    }
+  }
+  renderQueues();
+  setTimeout(()=> setStatus(''), 4000);
+}
+
+// Electron doesn't implement window.prompt(), so ask which page of a multi-page
+// upload to use as a replacement via a small custom modal instead.
+function promptSlideNumber(deckName, max){
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    const box = document.createElement('div');
+    box.className = 'modal-box';
+    const label = document.createElement('label');
+    label.textContent = `"${deckName}" has ${max} slides — enter the slide number to use as the replacement (1-${max}):`;
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '1';
+    input.max = String(max);
+    input.value = '1';
+    const actions = document.createElement('div');
+    actions.className = 'modal-actions';
+    const cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.textContent = 'Cancel';
+    const okBtn = document.createElement('button'); okBtn.type = 'button'; okBtn.className = 'action-button'; okBtn.textContent = 'Replace';
+    const close = value => { overlay.remove(); resolve(value); };
+    okBtn.addEventListener('click', () => close(input.value));
+    cancelBtn.addEventListener('click', () => close(null));
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') close(input.value);
+      if (e.key === 'Escape') close(null);
+    });
+    actions.append(cancelBtn, okBtn);
+    box.append(label, input, actions);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    input.focus();
+    input.select();
+  });
+}
+
+// Replace the slide at atIndex with a newly uploaded file (used by the per-slide "Replace" action).
+// Decks (PDF/PPTX) produce multiple pages, so ask which page to use as the replacement.
+async function replaceMediaItemAt(file, atIndex){
+  try {
+    const items = await convertFileToMediaItems(file);
+    let chosen;
+    if (items.length > 1){
+      const answer = await promptSlideNumber(file.name, items.length);
+      if (answer === null) return;
+      const num = parseInt(answer, 10);
+      if (!Number.isInteger(num) || num < 1 || num > items.length){
+        setStatus('Invalid slide number — replace cancelled.');
+        return;
+      }
+      chosen = items[num - 1];
+    } else {
+      chosen = items[0];
+    }
+    media.splice(atIndex, 1, chosen);
+    if (atIndex === currentMediaIndex) showMediaAt(atIndex, false);
+    else renderQueues();
+  } catch (error) {
+    console.error('Replace failed for', file.name, error);
+    setStatus(`Failed to replace with ${file.name}: ${error.message || 'unknown error'}`);
   } finally {
     setTimeout(()=> setStatus(''), 4000);
   }
@@ -2229,16 +2315,60 @@ function createListItem(item, index, type){
     actions.appendChild(bpBtn);
   }
 
-  const up = document.createElement('button'); up.title = 'Move up'; up.appendChild(faIcon('arrow-up'));
-  const down = document.createElement('button'); down.title = 'Move down'; down.appendChild(faIcon('arrow-down'));
-  const remove = document.createElement('button'); remove.title = 'Delete'; remove.appendChild(faIcon('trash'));
-  up.addEventListener('click', e=>{ e.stopPropagation(); moveItem(type, index, -1); });
-  down.addEventListener('click', e=>{ e.stopPropagation(); moveItem(type, index, 1); });
-  remove.addEventListener('click', e=>{ e.stopPropagation(); removeItem(type, index); });
-  actions.append(up, down, remove);
+  if (type === 'music') {
+    const up = document.createElement('button'); up.title = 'Move up'; up.appendChild(faIcon('arrow-up'));
+    const down = document.createElement('button'); down.title = 'Move down'; down.appendChild(faIcon('arrow-down'));
+    const remove = document.createElement('button'); remove.title = 'Delete'; remove.appendChild(faIcon('trash'));
+    up.addEventListener('click', e=>{ e.stopPropagation(); moveItem(type, index, -1); });
+    down.addEventListener('click', e=>{ e.stopPropagation(); moveItem(type, index, 1); });
+    remove.addEventListener('click', e=>{ e.stopPropagation(); removeItem(type, index); });
+    actions.append(up, down, remove);
+  }
+
+  let settingsPanel = null;
+  if (type === 'media') {
+    li.classList.toggle('settings-open', !!item._settingsOpen);
+
+    const settingsToggle = document.createElement('button');
+    settingsToggle.className = 'settings-toggle';
+    settingsToggle.title = 'More actions';
+    settingsToggle.appendChild(faIcon('gear'));
+    settingsToggle.addEventListener('click', e => {
+      e.stopPropagation();
+      item._settingsOpen = !item._settingsOpen;
+      li.classList.toggle('settings-open', item._settingsOpen);
+    });
+    actions.appendChild(settingsToggle);
+
+    const makeActionButton = (iconName, title, onClick, label) => {
+      const btn = document.createElement('button');
+      btn.title = title;
+      btn.appendChild(faIcon(iconName));
+      if (label) btn.appendChild(document.createTextNode(label));
+      btn.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+      return btn;
+    };
+    const triggerSlideAction = (mode, atIndex, allowMultiple) => {
+      pendingSlideAction = { mode, index: atIndex };
+      mediaSlideAction.multiple = allowMultiple;
+      mediaSlideAction.click();
+    };
+
+    settingsPanel = document.createElement('div');
+    settingsPanel.className = 'item-settings';
+    settingsPanel.append(
+      makeActionButton('arrow-up', 'Move up', () => moveItem('media', index, -1)),
+      makeActionButton('arrow-down', 'Move down', () => moveItem('media', index, 1)),
+      makeActionButton('plus', 'Insert slide before', () => triggerSlideAction('insert', index, true), 'Before'),
+      makeActionButton('plus', 'Insert slide after', () => triggerSlideAction('insert', index + 1, true), 'After'),
+      makeActionButton('file-import', 'Replace this slide', () => triggerSlideAction('replace', index, false)),
+      makeActionButton('trash', 'Delete', () => removeItem('media', index))
+    );
+  }
 
   content.append(info, actions);
   li.appendChild(content);
+  if (settingsPanel) li.appendChild(settingsPanel);
 
   li.addEventListener('click', ()=>{
     if (type === 'music') {
@@ -2897,6 +3027,16 @@ mediaFiles.addEventListener('change', async e=>{
   for (const f of files) {
     await processMediaFile(f);
   }
+});
+
+mediaSlideAction.addEventListener('change', async e=>{
+  const files = Array.from(e.target.files);
+  const action = pendingSlideAction;
+  pendingSlideAction = null;
+  e.target.value = '';
+  if (!action || !files.length) return;
+  if (action.mode === 'replace') await replaceMediaItemAt(files[0], action.index);
+  else await insertMediaFilesAt(files, action.index);
 });
 
 function renderMediaQueue(){
@@ -4590,3 +4730,66 @@ document.addEventListener('click', e => {
   void btn.offsetWidth; // restart animation if clicked in quick succession
   btn.classList.add('btn-clicked');
 }, { passive: true });
+
+// ===== IMMEDIATE TOOLTIPS =====
+// Native title="" tooltips wait ~1.5s before appearing. Replace them site-wide
+// with a custom tooltip that shows instantly. Uses event delegation so it also
+// covers dynamically-rendered controls (queue rows, gear panels, modals, etc.).
+(function(){
+  const tip = document.createElement('div');
+  tip.className = 'app-tooltip';
+  tip.setAttribute('role', 'tooltip');
+  let target = null;
+
+  function position(){
+    if (!target) return;
+    const r = target.getBoundingClientRect();
+    const tr = tip.getBoundingClientRect();
+    const gap = 8;
+    let top = r.top - tr.height - gap;
+    if (top < 4) top = r.bottom + gap; // flip below when there's no room above
+    let left = r.left + r.width / 2 - tr.width / 2;
+    left = Math.max(4, Math.min(left, window.innerWidth - tr.width - 4));
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }
+
+  function show(el){
+    const text = el.getAttribute('title');
+    if (!text) return;
+    if (!tip.isConnected) document.body.appendChild(tip);
+    el.setAttribute('data-tip', text);
+    el.removeAttribute('title'); // suppress the slow native tooltip
+    target = el;
+    tip.textContent = text;
+    tip.classList.add('visible');
+    position();
+  }
+
+  function hide(){
+    if (!target) return;
+    if (target.hasAttribute('data-tip')){
+      target.setAttribute('title', target.getAttribute('data-tip'));
+      target.removeAttribute('data-tip');
+    }
+    target = null;
+    tip.classList.remove('visible');
+  }
+
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest('[title]');
+    if (!el || el === target) return;
+    hide();
+    show(el);
+  });
+  document.addEventListener('mouseout', e => {
+    if (!target) return;
+    if (e.relatedTarget && target.contains(e.relatedTarget)) return; // still within host
+    hide();
+  });
+  // A click, scroll, or resize can move or destroy the hovered element — hide fast.
+  document.addEventListener('mousedown', hide, true);
+  document.addEventListener('scroll', hide, true);
+  window.addEventListener('resize', hide);
+  window.addEventListener('blur', hide);
+})();
