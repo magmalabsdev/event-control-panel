@@ -184,6 +184,7 @@ textarea:disabled{opacity:.55;cursor:not-allowed}
 .media-notes-card label{display:block;font-size:.9rem;color:#ccc}
 .media-mirror{padding:14px;background:#121212;border:1px solid #292929;border-radius:14px;--mirror-display-width:440px;--mirror-display-height:220px}
 .media-mirror h4{margin:0 0 10px;font-size:1rem;color:#ccc}
+.media-mirror h4 .mirror-resolution{font-weight:400;font-size:.8rem;color:#888;margin-left:6px}
 .mirror-content{width:100%;aspect-ratio:16/9;min-height:140px;max-height:360px;display:flex;align-items:center;justify-content:center;background:#080808;border-radius:14px;overflow:hidden}
 .mirror-content img,.mirror-content video{width:100%;height:100%;object-fit:contain;display:block}
 .media-preview-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;width:100%;align-items:stretch}

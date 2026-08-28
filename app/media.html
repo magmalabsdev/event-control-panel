@@ -74,6 +74,16 @@
       }
     }
 
+    function reportResolution(){
+      sendMessageToOpener({
+        type: 'displayResolution',
+        width: Math.round(window.innerWidth * (window.devicePixelRatio || 1)),
+        height: Math.round(window.innerHeight * (window.devicePixelRatio || 1)),
+      });
+    }
+    window.addEventListener('resize', reportResolution);
+    reportResolution();
+
     function clear(){
       displayArea.innerHTML = '';
       currentVideo = null;

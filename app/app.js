@@ -1,5 +1,9 @@
 // Event Control Panel - app.js
 
+// Slide rasterization quality: higher scale = sharper output on large/projector displays.
+const PDF_RENDER_SCALE = 2.5;   // 180 DPI (pdf.js scale=1 is 72 DPI)
+const PPTX_RENDER_SCALE = 2;    // 192 DPI, e.g. 2560x1440 for a 16:9 slide
+
 // Time display
 const timeEl = document.getElementById('time');
 const anTimeEl = document.getElementById('anTime');
@@ -704,7 +708,7 @@ async function addMediaUrl(url) {
       const blob = await resp.blob();
       const filename = raw.split('/').pop().split('?')[0] || 'remote.pdf';
       const file = new File([blob], filename, { type: 'application/pdf' });
-      const pages = await convertPdfFromFile(file, 1.5, 'jpeg');
+      const pages = await convertPdfFromFile(file, PDF_RENDER_SCALE, 'jpeg');
       media.push(...pages);
       renderMediaQueue();
       setStatus(`Added ${pages.length} PDF page${pages.length === 1 ? '' : 's'} from URL`);
@@ -721,7 +725,7 @@ async function addMediaUrl(url) {
       const blob = await resp.blob();
       const filename = raw.split('/').pop().split('?')[0] || 'remote.pptx';
       const file = new File([blob], filename, { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
-      const slides = await convertPptxFromFile(file, 1, 'jpeg');
+      const slides = await convertPptxFromFile(file, PPTX_RENDER_SCALE, 'jpeg');
       media.push(...slides);
       renderMediaQueue();
       setStatus(`Added ${slides.length} PPTX slide${slides.length === 1 ? '' : 's'} from URL`);
@@ -1419,7 +1423,7 @@ function loadFileMetadata(item, callback){
 }
 
 async function extractPdfPages(file){
-  return convertPdfFromFile(file, 1.5, 'jpeg');
+  return convertPdfFromFile(file, PDF_RENDER_SCALE, 'jpeg');
 }
 
 const EMU_PER_PX = 9525;
@@ -1503,7 +1507,7 @@ async function ensurePdfJsConfigured(){
 }
 
 // Convert a PDF File to slide items (uses pdfjsLib already loaded)
-async function convertPdfFromFile(file, scale = 1.5, format = 'jpeg'){
+async function convertPdfFromFile(file, scale = PDF_RENDER_SCALE, format = 'jpeg'){
   const pdfjs = await ensurePdfJsConfigured();
   setStatus(`Converting PDF: ${file.name}`);
   const array = await file.arrayBuffer();
@@ -1535,7 +1539,7 @@ async function convertPdfFromFile(file, scale = 1.5, format = 'jpeg'){
 }
 
 // Convert PPTX using JSZip and canvas renderer (adapted from converter.html)
-async function convertPptxFromFile(file, scale = 1, format = 'jpeg'){
+async function convertPptxFromFile(file, scale = PPTX_RENDER_SCALE, format = 'jpeg'){
   setStatus(`Converting PPTX: ${file.name}`);
   const buffer = await file.arrayBuffer();
   const zip = await JSZip.loadAsync(buffer);
@@ -1993,7 +1997,7 @@ async function createImageFromZip(zip, target){
 }
 
 async function extractPptxSlides(file){
-  return convertPptxFromFile(file, 1, 'jpeg');
+  return convertPptxFromFile(file, PPTX_RENDER_SCALE, 'jpeg');
 }
 
 // Convert a single uploaded file to its media item(s), without mutating `media` or rendering.
@@ -2001,14 +2005,14 @@ async function convertFileToMediaItems(file){
   const lower = file.name.toLowerCase();
   if (lower.endsWith('.pdf')){
     setStatus(`Loading PDF: ${file.name}`);
-    const pages = await convertPdfFromFile(file, 1.5, 'jpeg');
+    const pages = await convertPdfFromFile(file, PDF_RENDER_SCALE, 'jpeg');
     if (pages.length) return pages;
     console.warn('PDF conversion produced no pages for', file.name);
     return [{name:file.name,type:'image/pdf',url:'',source:'pdf',pageNumber:0,pages:0,notes:''}];
   }
   if (lower.endsWith('.pptx')){
     setStatus(`Loading PPTX: ${file.name}`);
-    const slides = await convertPptxFromFile(file, 1, 'jpeg');
+    const slides = await convertPptxFromFile(file, PPTX_RENDER_SCALE, 'jpeg');
     if (slides.length) return slides;
     console.warn('PPTX conversion produced no slides for', file.name);
     return [{name:file.name,type:'image/pptx',url:'',source:'pptx',pageNumber:0,pages:0,notes:''}];
@@ -3063,6 +3067,7 @@ function findNextPlayableMediaIndex(startIndex, direction){
 
 function openDisplayWindow(){
   if (displayWindow && !displayWindow.closed) { displayWindow.focus(); return; }
+  updateMirrorResolutionLabel(null, null);
   displayWindow = window.open('media.html','EventDisplay','width=1280,height=720');
   if (displayHidden) {
     setTimeout(() => {
@@ -3185,6 +3190,9 @@ window.addEventListener('message', e => {
   if (!msg || typeof msg !== 'object') return;
   if (msg.type === 'videoEnded') {
     advanceMedia();
+  }
+  if (msg.type === 'displayResolution') {
+    updateMirrorResolutionLabel(msg.width, msg.height);
   }
 });
 
@@ -3412,6 +3420,12 @@ function refreshMediaPreviewSize(){
   const rect = mediaMirrorContent.getBoundingClientRect();
   mediaMirror.style.setProperty('--mirror-display-width', `${rect.width}px`);
   mediaMirror.style.setProperty('--mirror-display-height', `${rect.height}px`);
+}
+
+function updateMirrorResolutionLabel(width, height){
+  const label = document.getElementById('mirrorResolutionLabel');
+  if (!label) return;
+  label.textContent = (width && height) ? `Mirror display (${width} x ${height})` : '';
 }
 
 function renderPreviewCard(button, item, label){
