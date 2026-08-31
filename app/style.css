@@ -363,6 +363,13 @@ body.icons-mode #clearAnnouncementBtn::before{-webkit-mask-image:url(icons/xmark
 .toggle-track::before{content:'';position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#888;border-radius:50%;transition:transform .2s,background .2s}
 .settings-toggle input:checked+.toggle-track{background:#7055e5}
 .settings-toggle input:checked+.toggle-track::before{transform:translateX(22px);background:#fff}
+.keybind-control{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.keybind-btn{min-width:140px;padding:8px 14px;background:#2c2c2c;border:1px solid #555;border-radius:10px;color:#eee;font-family:'Space Mono',monospace;font-size:.85rem;cursor:pointer;transition:background .2s,border-color .2s}
+.keybind-btn:hover{background:#383838;border-color:#888}
+.keybind-btn.keybind-unset{color:#777;font-style:italic}
+.keybind-btn.keybind-listening{background:#7055e5;border-color:#9c8cf0;color:#fff;font-style:normal}
+.keybind-clear{padding:8px 10px;background:transparent;border:1px solid #444;border-radius:10px;color:#888;cursor:pointer;line-height:1;transition:background .2s,color .2s,border-color .2s}
+.keybind-clear:hover{background:#3a2222;color:#e88;border-color:#a55}
 .github-banner{display:flex;align-items:center;gap:16px;padding:18px 22px;background:#161616;border:1px solid #292929;border-radius:16px;text-decoration:none;color:#eee;transition:background .2s,border-color .2s,transform .15s}
 .github-banner:hover{background:#1e1e22;border-color:#555;transform:translateY(-2px)}
 .github-banner-text{display:flex;flex-direction:column;gap:3px;min-width:0}
@@ -434,6 +441,10 @@ body.light-mode .github-banner{background:#f5f5f8;border-color:#ddd;color:#111}
 body.light-mode .github-banner:hover{background:#e8e8ec;border-color:#b0b0b8}
 body.light-mode .settings-row{border-bottom-color:#e0e0e4}
 body.light-mode .settings-label p{color:#888}
+body.light-mode .keybind-btn{background:#e0e0e4;border-color:#b8b8be;color:#111}
+body.light-mode .keybind-btn:hover{background:#d0d0d5;border-color:#888}
+body.light-mode .keybind-btn.keybind-unset{color:#888}
+body.light-mode .keybind-clear{border-color:#c8c8cc;color:#888}
 body.light-mode .toggle-track{background:#c8c8cc}
 body.light-mode .toggle-track::before{background:#fff}
 

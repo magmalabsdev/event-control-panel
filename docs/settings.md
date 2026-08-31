@@ -61,6 +61,25 @@ Compatible with Icon Navigation: the LED bars appear above the icon.
 
 ---
 
+## Advanced
+
+### Keybinds
+
+Assign a keyboard shortcut to each of the following actions:
+
+- Toggle Music
+- Next Slide
+- Previous Slide
+- Toggle Freeze
+- Toggle Hide
+- Toggle Announcement
+
+Every action starts **unassigned** and does nothing until a key is bound to it. Click a keybind box to start listening, then press any key (with optional Ctrl/Alt/Shift/Meta modifiers) to assign it — press **Esc** to cancel instead. Click the **✕** next to a keybind to clear it. Assigning a combination that's already in use on another action moves it to the new action.
+
+Shortcuts are ignored while typing in a text field, and are saved automatically, restored on relaunch.
+
+---
+
 ## Feedback
 
 A feedback form at the bottom of the page can be used to submit bug reports or feature requests.

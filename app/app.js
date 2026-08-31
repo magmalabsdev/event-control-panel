@@ -4409,6 +4409,111 @@ document.getElementById('clearAnnouncementBtn')?.addEventListener('click', clear
 })();
 
 
+// ===== KEYBINDS =====
+(function initKeybinds() {
+  const STORAGE_KEY = 'ecp-keybinds';
+
+  const actions = {
+    toggleMusic:        () => (musicPlaying ? musicPause : musicPlay).click(),
+    nextSlide:           () => mediaNext.click(),
+    prevSlide:           () => mediaPrev.click(),
+    toggleFreeze:        () => toggleDisplayFreeze(),
+    toggleHide:          () => toggleDisplayHide(),
+    toggleAnnouncement:  () => intercomToggle.click(),
+  };
+
+  let bindings = {};
+  try { bindings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch (e) { bindings = {}; }
+
+  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(bindings)); }
+
+  function comboFromEvent(e) {
+    if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return null;
+    const parts = [];
+    if (e.ctrlKey) parts.push('Ctrl');
+    if (e.altKey) parts.push('Alt');
+    if (e.shiftKey) parts.push('Shift');
+    if (e.metaKey) parts.push('Meta');
+    let key = e.key;
+    if (key === ' ') key = 'Space';
+    else if (key.length === 1) key = key.toUpperCase();
+    parts.push(key);
+    return parts.join('+');
+  }
+
+  function getBtn(actionId) { return document.querySelector(`.keybind-btn[data-action="${actionId}"]`); }
+
+  function renderRow(actionId) {
+    const btn = getBtn(actionId);
+    if (!btn) return;
+    const combo = bindings[actionId];
+    btn.textContent = combo || 'Not set';
+    btn.classList.toggle('keybind-unset', !combo);
+  }
+
+  function renderAll() { Object.keys(actions).forEach(renderRow); }
+
+  let capturingAction = null;
+
+  function stopCapturing(actionId) {
+    const btn = getBtn(actionId);
+    if (btn) btn.classList.remove('keybind-listening');
+    capturingAction = null;
+  }
+
+  document.querySelectorAll('.keybind-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const actionId = btn.dataset.action;
+      if (capturingAction) stopCapturing(capturingAction);
+      if (capturingAction === actionId) { renderRow(actionId); return; }
+      capturingAction = actionId;
+      btn.textContent = 'Press a key…';
+      btn.classList.add('keybind-listening');
+    });
+  });
+
+  document.querySelectorAll('.keybind-clear').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const actionId = btn.dataset.action;
+      if (capturingAction === actionId) stopCapturing(actionId);
+      delete bindings[actionId];
+      save();
+      renderRow(actionId);
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (capturingAction) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === 'Escape') { renderRow(capturingAction); stopCapturing(capturingAction); return; }
+      const combo = comboFromEvent(e);
+      if (!combo) return;
+      const currentAction = capturingAction;
+      Object.keys(bindings).forEach(id => { if (bindings[id] === combo) delete bindings[id]; });
+      bindings[currentAction] = combo;
+      save();
+      stopCapturing(currentAction);
+      renderAll();
+      return;
+    }
+
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+
+    const combo = comboFromEvent(e);
+    if (!combo) return;
+    const actionId = Object.keys(bindings).find(id => bindings[id] === combo);
+    if (actionId && actions[actionId]) {
+      e.preventDefault();
+      actions[actionId]();
+    }
+  });
+
+  renderAll();
+})();
+
+
 // ===== (Spotify Connect PKCE/SDK removed — using iframe embed instead) =====
 (function _noop() { return;
   let scToken = null;
